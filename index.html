@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUS World Chat Plugin 1.21.1 — Full Source Code</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0f; color: #e2e8f0; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        /* Minecraft-style gradient */
+        .mc-gradient {
+            background: linear-gradient(135deg, #1a0a2e 0%, #0d1b2a 30%, #1b2838 60%, #0a2a1a 100%);
+        }
+        /* Glowing effects */
+        .glow-green { text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff8844; }
+        .glow-purple { text-shadow: 0 0 20px #a855f7, 0 0 40px #a855f744; }
+        .glow-blue { text-shadow: 0 0 20px #3b82f6, 0 0 40px #3b82f644; }
+        .glow-gold { text-shadow: 0 0 20px #f59e0b, 0 0 40px #f59e0b44; }
+        .box-glow-green { box-shadow: 0 0 30px #00ff8822, inset 0 1px 0 #00ff8833; }
+        .box-glow-purple { box-shadow: 0 0 30px #a855f722, inset 0 1px 0 #a855f733; }
+        .box-glow-blue { box-shadow: 0 0 30px #3b82f622, inset 0 1px 0 #3b82f633; }
+        .box-glow-gold { box-shadow: 0 0 30px #f59e0b22, inset 0 1px 0 #f59e0b33; }
+        /* Code block styling */
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .code-header {
+            background: #161b22;
+            border-bottom: 1px solid #21262d;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .code-content {
+            padding: 16px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .code-content::-webkit-scrollbar { width: 8px; height: 8px; }
+        .code-content::-webkit-scrollbar-track { background: #0d1117; }
+        .code-content::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+        .code-content::-webkit-scrollbar-thumb:hover { background: #484f58; }
+        /* Syntax highlighting */
+        .kw { color: #ff7b72; }
+        .type { color: #79c0ff; }
+        .str { color: #a5d6ff; }
+        .str2 { color: #7ee787; }
+        .num { color: #f2cc60; }
+        .cmt { color: #8b949e; font-style: italic; }
+        .ann { color: #d2a8ff; }
+        .fn { color: #d2a8ff; }
+        .var { color: #ffa657; }
+        .op { color: #ff7b72; }
+        .tag { color: #7ee787; }
+        .attr { color: #79c0ff; }
+        .val { color: #a5d6ff; }
+        /* Tree structure */
+        .tree-line { border-left: 2px solid #30363d; }
+        /* Tab system */
+        .tab-btn {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .tab-btn.active {
+            color: #00ff88;
+            border-bottom: 2px solid #00ff88;
+        }
+        .tab-btn:hover { color: #00ff88; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        /* Floating particles */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            border-radius: 50%;
+            animation: float linear infinite;
+            opacity: 0;
+        }
+        @keyframes float {
+            0% { opacity: 0; transform: translateY(100vh) rotate(0deg); }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-10vh) rotate(720deg); }
+        }
+        /* Chat preview */
+        .mc-chat {
+            font-family: 'JetBrains Mono', monospace;
+            background: #000000cc;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .mc-dark-red { color: #AA0000; }
+        .mc-red { color: #FF5555; }
+        .mc-gold { color: #FFAA00; }
+        .mc-yellow { color: #FFFF55; }
+        .mc-dark-green { color: #00AA00; }
+        .mc-green { color: #55FF55; }
+        .mc-aqua { color: #55FFFF; }
+        .mc-dark-aqua { color: #00AAAA; }
+        .mc-dark-blue { color: #0000AA; }
+        .mc-blue { color: #5555FF; }
+        .mc-light-purple { color: #FF55FF; }
+        .mc-dark-purple { color: #AA00AA; }
+        .mc-white { color: #FFFFFF; }
+        .mc-gray { color: #AAAAAA; }
+        .mc-dark-gray { color: #555555; }
+        .mc-bold { font-weight: 700; }
+        .mc-italic { font-style: italic; }
+        /* Copy button */
+        .copy-btn {
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { background: #30363d; }
+        .copy-btn.copied { color: #00ff88; }
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+        /* Nav active */
+        .nav-link { transition: all 0.2s; }
+        .nav-link:hover { color: #00ff88; }
+        .nav-link.active { color: #00ff88; }
+        /* Animated border */
+        .animated-border {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .animated-border::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            padding: 1px;
+            background: linear-gradient(135deg, #00ff88, #a855f7, #3b82f6, #00ff88);
+            background-size: 300% 300%;
+            animation: borderGlow 4s ease infinite;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+        @keyframes borderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        /* Feature cards */
+        .feature-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            border-color: #00ff8855;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px #00ff8811;
+        }
+        /* Pulsing dot */
+        .pulse-dot {
+            width: 8px; height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 #00ff8844; }
+            50% { opacity: 0.8; box-shadow: 0 0 0 8px #00ff8800; }
+        }
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ff8833, transparent);
+        }
+    </style>
+</head>
+<body class="mc-gradient min-h-screen">
+    <!-- Floating Particles -->
+    <div id="particles"></div>
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm">SC</div>
+                    <span class="font-bold text-lg">SUS<span class="text-green-400">Chat</span></span>
+                    <span class="text-xs px-2 py-0.5 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">v2.0</span>
+                </div>
+                <div class="hidden md:flex items-center gap-6 text-sm">
+                    <a href="#overview" class="nav-link text-gray-400">Обзор</a>
+                    <a href="#features" class="nav-link text-gray-400">Фичи</a>
+                    <a href="#structure" class="nav-link text-gray-400">Структура</a>
+                    <a href="#code" class="nav-link text-gray-400">Код</a>
+                    <a href="#config" class="nav-link text-gray-400">Конфиг</a>
+                    <a href="#preview" class="nav-link text-gray-400">Превью</a>
+                    <a href="#commands" class="nav-link text-gray-400">Команды</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="pulse-dot"></div>
+                    <span class="text-xs text-green-400">1.21.1</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- Hero -->
+    <section id="overview" class="pt-28 pb-16 px-4">
+        <div class="max-w-5xl mx-auto text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 rounded-full border border-green-500/20 mb-6">
+                <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+                <span class="text-green-400 text-sm font-medium">Paper/Spigot 1.21.1 • MiniMessage • Adventure API</span>
+            </div>
+            <h1 class="text-5xl sm:text-7xl font-black mb-6 leading-tight">
+                <span class="text-white">SUS World</span><br>
+                <span class="bg-gradient-to-r from-green-400 via-emerald-300 to-teal-400 bg-clip-text text-transparent">Chat Plugin</span>
+            </h1>
+            <p class="text-gray-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+                Профессиональный чат-плагин с глобальным/локальным чатом, объявлениями <code class="text-green-400 bg-green-500/10 px-2 py-0.5 rounded">/ad</code>, фильтром мата и потрясающим дизайном
+            </p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="#code" class="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-500/25 transition-all">
+                    📦 Смотреть код
+                </a>
+                <a href="#structure" class="px-8 py-3 bg-white/5 border border-white/10 text-white font-semibold rounded-xl hover:bg-white/10 transition-all">
+                    📁 Структура проекта
+                </a>
+            </div>
+        </div>
+    </section>
+    <!-- Features -->
+    <section id="features" class="py-16 px-4">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">
+                <span class="text-green-400">⚡</span> Возможности
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="feature-card">
+                    <div class="text-3xl mb-3">🌍</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Глобальный чат</h3>
+                    <p class="text-gray-400 text-sm">Пиши <code class="text-green-400">!</code> перед сообщением — и тебя увидит весь сервер. Красивый формат с префиксами.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="text-3xl mb-3">📍</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Локальный чат</h3>
+                    <p class="text-gray-400 text-sm">По умолчанию ��ообщения видны в радиусе 100 блоков. Настраиваемая дистанция.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="text-3xl mb-3">📢</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Объявления /ad</h3>
+                    <p class="text-gray-400 text-sm">Команда <code class="text-green-400">/ad</code> для объявлений с кулдауном, красивой рамкой и звуком.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="text-3xl mb-3">🤬</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Фильтр мата</h3>
+                    <p class="text-gray-400 text-sm">Умный фильтр русских матов — заменяет на <code class="text-red-400">####</code>. Обход через пробелы/символы не пройдёт.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="text-3xl mb-3">🎨</div>
+                    <h3 class="text-lg font-bold text-white mb-2">MiniMessage</h3>
+                    <p class="text-gray-400 text-sm">Полная поддержка Adventure API и MiniMessage для градиентов, hover, click эффектов.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="text-3xl mb-3">⚙️</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Гибкий конфиг</h3>
+                    <p class="text-gray-400 text-sm">Всё настраивается через config.yml — форматы, радиус, кулдауны, список матов и права.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="text-3xl mb-3">🔔</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Уведомления</h3>
+                    <p class="text-gray-400 text-sm">Звуковые уведомления при упоминании ника, ActionBar и Title при объявлениях.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="text-3xl mb-3">🛡️</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Анти-спам</h3>
+                    <p class="text-gray-400 text-sm">Защита от спама с настраиваемым кулдауном, защита от капса и повторов.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="text-3xl mb-3">🔄</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Hot Reload</h3>
+                    <p class="text-gray-400 text-sm">Команда <code class="text-green-400">/suschat reload</code> перезагружает конфиг без рестарта сервера.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="section-divider"></div>
+    <!-- Project Structure -->
+    <section id="structure" class="py-16 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">
+                <span class="text-purple-400">📁</span> Структура проекта
+            </h2>
+            <div class="code-block box-glow-purple">
+                <div class="code-header">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                        <span class="text-gray-400 text-sm ml-2 font-mono">SUSChat/</span>
+                    </div>
+                </div>
+                <div class="code-content font-mono text-sm" id="tree-content">
+<pre class="text-gray-300">
+<span class="text-yellow-400">📦 SUSChat/</span>
+├── <span class="text-blue-400">📄 pom.xml</span>                              <span class="cmt">// Maven сборка</span>
+├── <span class="text-gray-500">📄 .gitignore</span>
+│
+└── <span class="text-yellow-400">📂 src/</span>
+    └── <span class="text-yellow-400">📂 main/</span>
+        ├── <span class="text-yellow-400">📂 java/</span>
+        │   └── <span class="text-yellow-400">📂 com/susworld/chat/</span>
+        │       │
+        │       ├── <span class="text-green-400">📄 SUSChatPlugin.java</span>         <span class="cmt">// Главный класс плагина</span>
+        │       │
+        │       ├── <span class="text-yellow-400">📂 chat/</span>
+        │       │   ├── <span class="text-purple-400">📄 ChatManager.java</span>          <span class="cmt">// Управление чатом</span>
+        │       │   ├── <span class="text-purple-400">📄 ChatType.java</span>             <span class="cmt">// Enum типов чата</span>
+        │       │   └── <span class="text-purple-400">📄 ChatFormatter.java</span>        <span class="cmt">// Форматирование сообщений</span>
+        │       │
+        │       ├── <span class="text-yellow-400">📂 listener/</span>
+        │       │   └── <span class="text-cyan-400">📄 ChatListener.java</span>          <span class="cmt">// Слушатель событий чата</span>
+        │       │
+        │       ├── <span class="text-yellow-400">📂 command/</span>
+        │       │   ├── <span class="text-orange-400">📄 AdCommand.java</span>             <span class="cmt">// Команда /ad (объявления)</span>
+        │       │   └── <span class="text-orange-400">📄 SUSChatCommand.java</span>        <span class="cmt">// Команда /suschat (управление)</span>
+        │       │
+        │       ├── <span class="text-yellow-400">📂 filter/</span>
+        │       │   ├── <span class="text-red-400">📄 SwearFilter.java</span>            <span class="cmt">// Фильтр мата</span>
+        │       │   └── <span class="text-red-400">📄 AntiSpam.java</span>               <span class="cmt">// Анти-спам система</span>
+        │       │
+        │       ├── <span class="text-yellow-400">📂 util/</span>
+        │       │   ├── <span class="text-gray-300">📄 ColorUtil.java</span>             <span class="cmt">// Утилиты цветов MiniMessage</span>
+        │       │   └── <span class="text-gray-300">📄 SoundUtil.java</span>             <span class="cmt">// Утилиты звуков</span>
+        │       │
+        │       └── <span class="text-yellow-400">📂 config/</span>
+        │           └── <span class="text-blue-300">📄 ConfigManager.java</span>         <span class="cmt">// Менеджер конфигурации</span>
+        │
+        └── <span class="text-yellow-400">📂 resources/</span>
+            ├── <span class="text-green-300">📄 plugin.yml</span>                     <span class="cmt">// Описание плагина</span>
+            └── <span class="text-green-300">📄 config.yml</span>                     <span class="cmt">// Конфигурация по умолчанию</span>
+</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="section-divider"></div>
+    <!-- Code Section -->
+    <section id="code" class="py-16 px-4">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-4">
+                <span class="text-green-400">💻</span> Исходный код
+            </h2>
+            <p class="text-gray-400 text-center mb-10">Полный исходный код всех файлов плагина — копируй и компилируй</p>
+            <!-- File Tabs -->
+            <div class="flex flex-wrap gap-2 mb-6 border-b border-white/10 pb-2 overflow-x-auto">
+                <button class="tab-btn active px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="pom">pom.xml</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="plugin-yml">plugin.yml</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="config-yml">config.yml</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="main">SUSChatPlugin.java</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="chatmanager">ChatManager.java</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="chattype">ChatType.java</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="chatformatter">ChatFormatter.java</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="chatlistener">ChatListener.java</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="adcommand">AdCommand.java</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="suschatcmd">SUSChatCommand.java</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="swearfilter">SwearFilter.java</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="antispam">AntiSpam.java</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="colorutil">ColorUtil.java</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="soundutil">SoundUtil.java</button>
+                <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-400 whitespace-nowrap" data-tab="configmgr">ConfigManager.java</button>
+            </div>
+            <!-- Tab Contents -->
+            <!-- pom.xml -->
+            <div class="tab-content active" id="tab-pom">
+                <div class="code-block box-glow-blue">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-blue-400 text-sm font-mono">📄 pom.xml</span>
+                            <span class="text-xs px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-full">Maven</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="tag">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<span class="tag">&lt;project</span> <span class="attr">xmlns</span>=<span class="val">"http://maven.apache.org/POM/4.0.0"</span>
+         <span class="attr">xmlns:xsi</span>=<span class="val">"http://www.w3.org/2001/XMLSchema-instance"</span>
+         <span class="attr">xsi:schemaLocation</span>=<span class="val">"http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;modelVersion&gt;</span>4.0.0<span class="tag">&lt;/modelVersion&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span>com.susworld<span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span>SUSChat<span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;version&gt;</span>2.0.0<span class="tag">&lt;/version&gt;</span>
+    <span class="tag">&lt;packaging&gt;</span>jar<span class="tag">&lt;/packaging&gt;</span>
+    <span class="tag">&lt;name&gt;</span>SUSChat<span class="tag">&lt;/name&gt;</span>
+    <span class="tag">&lt;description&gt;</span>Premium chat plugin for SUS World 1.21.1<span class="tag">&lt;/description&gt;</span>
+    <span class="tag">&lt;properties&gt;</span>
+        <span class="tag">&lt;java.version&gt;</span>21<span class="tag">&lt;/java.version&gt;</span>
+        <span class="tag">&lt;project.build.sourceEncoding&gt;</span>UTF-8<span class="tag">&lt;/project.build.sourceEncoding&gt;</span>
+    <span class="tag">&lt;/properties&gt;</span>
+    <span class="tag">&lt;repositories&gt;</span>
+        <span class="tag">&lt;repository&gt;</span>
+            <span class="tag">&lt;id&gt;</span>papermc<span class="tag">&lt;/id&gt;</span>
+            <span class="tag">&lt;url&gt;</span>https://repo.papermc.io/repository/maven-public/<span class="tag">&lt;/url&gt;</span>
+        <span class="tag">&lt;/repository&gt;</span>
+    <span class="tag">&lt;/repositories&gt;</span>
+    <span class="tag">&lt;dependencies&gt;</span>
+        <span class="tag">&lt;dependency&gt;</span>
+            <span class="tag">&lt;groupId&gt;</span>io.papermc.paper<span class="tag">&lt;/groupId&gt;</span>
+            <span class="tag">&lt;artifactId&gt;</span>paper-api<span class="tag">&lt;/artifactId&gt;</span>
+            <span class="tag">&lt;version&gt;</span>1.21.1-R0.1-SNAPSHOT<span class="tag">&lt;/version&gt;</span>
+            <span class="tag">&lt;scope&gt;</span>provided<span class="tag">&lt;/scope&gt;</span>
+        <span class="tag">&lt;/dependency&gt;</span>
+    <span class="tag">&lt;/dependencies&gt;</span>
+    <span class="tag">&lt;build&gt;</span>
+        <span class="tag">&lt;plugins&gt;</span>
+            <span class="tag">&lt;plugin&gt;</span>
+                <span class="tag">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/groupId&gt;</span>
+                <span class="tag">&lt;artifactId&gt;</span>maven-compiler-plugin<span class="tag">&lt;/artifactId&gt;</span>
+                <span class="tag">&lt;version&gt;</span>3.13.0<span class="tag">&lt;/version&gt;</span>
+                <span class="tag">&lt;configuration&gt;</span>
+                    <span class="tag">&lt;source&gt;</span>21<span class="tag">&lt;/source&gt;</span>
+                    <span class="tag">&lt;target&gt;</span>21<span class="tag">&lt;/target&gt;</span>
+                <span class="tag">&lt;/configuration&gt;</span>
+            <span class="tag">&lt;/plugin&gt;</span>
+            <span class="tag">&lt;plugin&gt;</span>
+                <span class="tag">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/groupId&gt;</span>
+                <span class="tag">&lt;artifactId&gt;</span>maven-jar-plugin<span class="tag">&lt;/artifactId&gt;</span>
+                <span class="tag">&lt;version&gt;</span>3.4.2<span class="tag">&lt;/version&gt;</span>
+                <span class="tag">&lt;configuration&gt;</span>
+                    <span class="tag">&lt;finalName&gt;</span>SUSChat-${project.version}<span class="tag">&lt;/finalName&gt;</span>
+                <span class="tag">&lt;/configuration&gt;</span>
+            <span class="tag">&lt;/plugin&gt;</span>
+        <span class="tag">&lt;/plugins&gt;</span>
+        <span class="tag">&lt;resources&gt;</span>
+            <span class="tag">&lt;resource&gt;</span>
+                <span class="tag">&lt;directory&gt;</span>src/main/resources<span class="tag">&lt;/directory&gt;</span>
+                <span class="tag">&lt;filtering&gt;</span>true<span class="tag">&lt;/filtering&gt;</span>
+            <span class="tag">&lt;/resource&gt;</span>
+        <span class="tag">&lt;/resources&gt;</span>
+    <span class="tag">&lt;/build&gt;</span>
+<span class="tag">&lt;/project&gt;</span></pre></div>
+                </div>
+            </div>
+            <!-- plugin.yml -->
+            <div class="tab-content" id="tab-plugin-yml">
+                <div class="code-block box-glow-green">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-400 text-sm font-mono">📄 src/main/resources/plugin.yml</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="attr">name</span>: <span class="str2">SUSChat</span>
+<span class="attr">version</span>: <span class="str2">'${project.version}'</span>
+<span class="attr">main</span>: <span class="str2">com.susworld.chat.SUSChatPlugin</span>
+<span class="attr">api-version</span>: <span class="str2">'1.21'</span>
+<span class="attr">author</span>: <span class="str2">SUSWorld Team</span>
+<span class="attr">description</span>: <span class="str2">Premium chat system for SUS World server</span>
+<span class="attr">website</span>: <span class="str2">https://susworld.com</span>
+<span class="attr">commands</span>:
+  <span class="attr">ad</span>:
+    <span class="attr">description</span>: <span class="str2">Отправить объявление на весь сервер</span>
+    <span class="attr">usage</span>: <span class="str2">/ad &lt;сообщение&gt;</span>
+    <span class="attr">permission</span>: <span class="str2">suschat.ad</span>
+  <span class="attr">suschat</span>:
+    <span class="attr">description</span>: <span class="str2">Управление плагином SUSChat</span>
+    <span class="attr">usage</span>: <span class="str2">/suschat &lt;reload|help&gt;</span>
+    <span class="attr">permission</span>: <span class="str2">suschat.admin</span>
+    <span class="attr">aliases</span>: [<span class="str2">sc</span>, <span class="str2">schat</span>]
+<span class="attr">permissions</span>:
+  <span class="attr">suschat.ad</span>:
+    <span class="attr">description</span>: <span class="str2">Разрешает отправлять объявления</span>
+    <span class="attr">default</span>: <span class="str2">true</span>
+  <span class="attr">suschat.ad.bypass-cooldown</span>:
+    <span class="attr">description</span>: <span class="str2">Обход кулдауна объявлений</span>
+    <span class="attr">default</span>: <span class="str2">op</span>
+  <span class="attr">suschat.admin</span>:
+    <span class="attr">description</span>: <span class="str2">Административные команды SUSChat</span>
+    <span class="attr">default</span>: <span class="str2">op</span>
+  <span class="attr">suschat.chat.global</span>:
+    <span class="attr">description</span>: <span class="str2">Доступ к глобальному чату</span>
+    <span class="attr">default</span>: <span class="str2">true</span>
+  <span class="attr">suschat.chat.color</span>:
+    <span class="attr">description</span>: <span class="str2">Использование цветов в чате</span>
+    <span class="attr">default</span>: <span class="str2">op</span>
+  <span class="attr">suschat.bypass.filter</span>:
+    <span class="attr">description</span>: <span class="str2">Обход фильтра мата</span>
+    <span class="attr">default</span>: <span class="str2">op</span>
+  <span class="attr">suschat.bypass.spam</span>:
+    <span class="attr">description</span>: <span class="str2">Обход анти-спама</span>
+    <span class="attr">default</span>: <span class="str2">op</span></pre></div>
+                </div>
+            </div>
+            <!-- config.yml -->
+            <div class="tab-content" id="tab-config-yml">
+                <div class="code-block box-glow-gold">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-yellow-400 text-sm font-mono">📄 src/main/resources/config.yml</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="cmt"># ╔══════════════════════════════════════════════════════════╗</span>
+<span class="cmt"># ║          SUS World Chat Plugin v2.0 — Config            ║</span>
+<span class="cmt"># ║            Сервер: SUS World 1.21.1                     ║</span>
+<span class="cmt"># ╚══════════════════════════════════════════════════════════╝</span>
+<span class="cmt"># ── Настройки чата ──────────────────────────────────────────</span>
+<span class="attr">chat</span>:
+  <span class="cmt"># Символ для переключения на глобальный чат</span>
+  <span class="attr">global-prefix</span>: <span class="str2">"!"</span>
+  <span class="cmt"># Радиус локального чата (в блоках)</span>
+  <span class="attr">local-radius</span>: <span class="num">100</span>
+  <span class="cmt"># Формат сообщений (MiniMessage формат)</span>
+  <span class="cmt"># Плейсхолдеры: {player}, {message}, {world}, {prefix}, {suffix}</span>
+  <span class="attr">formats</span>:
+    <span class="attr">global</span>: <span class="str2">"&lt;dark_gray&gt;[&lt;gradient:gold:yellow&gt;G&lt;/gradient&gt;&lt;dark_gray&gt;] &lt;white&gt;{prefix}{player}&lt;/white&gt; &lt;dark_gray&gt;» &lt;gray&gt;{message}"</span>
+    <span class="attr">local</span>: <span class="str2">"&lt;dark_gray&gt;[&lt;gradient:aqua:dark_aqua&gt;L&lt;/gradient&gt;&lt;dark_gray&gt;] &lt;white&gt;{prefix}{player}&lt;/white&gt; &lt;dark_gray&gt;» &lt;gray&gt;{message}"</span>
+  <span class="cmt"># Сообщение когда никто не рядом в локальном чате</span>
+  <span class="attr">nobody-nearby</span>: <span class="str2">"&lt;gray&gt;[&lt;red&gt;!&lt;/red&gt;] &lt;gray&gt;Рядом никого нет... Используй &lt;gold&gt;!&lt;сообщение&gt;&lt;/gold&gt; для глобального чата."</span>
+<span class="cmt"># ── Объявления ──────────────────────────────────────────────</span>
+<span class="attr">ad</span>:
+  <span class="cmt"># Кулдаун между объявлениями (в секундах)</span>
+  <span class="attr">cooldown</span>: <span class="num">300</span>
+  <span class="cmt"># Минимальная длина объявления</span>
+  <span class="attr">min-length</span>: <span class="num">10</span>
+  <span class="cmt"># Формат объявления (MiniMessage)</span>
+  <span class="attr">format</span>:
+    <span class="attr">header</span>: <span class="str2">"&lt;newline&gt;&lt;gray&gt;╔══════════════════════════════════════════╗"</span>
+    <span class="attr">content</span>: <span class="str2">"&lt;gray&gt;║ &lt;gradient:gold:yellow&gt;📢 ОБЪЯВЛЕНИЕ&lt;/gradient&gt; &lt;dark_gray&gt;от &lt;white&gt;{player}&lt;/white&gt;&lt;newline&gt;&lt;gray&gt;║ &lt;white&gt;{message}"</span>
+    <span class="attr">footer</span>: <span class="str2">"&lt;gray&gt;╚══════════════════════════════════════════╝&lt;newline&gt;"</span>
+  <span class="cmt"># Звук при объявлении</span>
+  <span class="attr">sound</span>:
+    <span class="attr">enabled</span>: <span class="num">true</span>
+    <span class="attr">type</span>: <span class="str2">"ENTITY_EXPERIENCE_ORB_PICKUP"</span>
+    <span class="attr">volume</span>: <span class="num">1.0</span>
+    <span class="attr">pitch</span>: <span class="num">1.2</span>
+  <span class="cmt"># Title при объявлении</span>
+  <span class="attr">title</span>:
+    <span class="attr">enabled</span>: <span class="num">true</span>
+    <span class="attr">text</span>: <span class="str2">"&lt;gradient:gold:yellow&gt;📢 Новое объявление!&lt;/gradient&gt;"</span>
+    <span class="attr">subtitle</span>: <span class="str2">"&lt;gray&gt;от &lt;white&gt;{player}"</span>
+    <span class="attr">fade-in</span>: <span class="num">10</span>
+    <span class="attr">stay</span>: <span class="num">40</span>
+    <span class="attr">fade-out</span>: <span class="num">10</span>
+<span class="cmt"># ── Фильтр мата ────────────────────────────────────────────</span>
+<span class="attr">filter</span>:
+  <span class="attr">enabled</span>: <span class="num">true</span>
+  <span class="cmt"># Символ замены</span>
+  <span class="attr">replacement-char</span>: <span class="str2">"#"</span>
+  <span class="cmt"># Уведомление игроку при блокировке мата</span>
+  <span class="attr">warn-message</span>: <span class="str2">"&lt;red&gt;⚠ &lt;gray&gt;Сообщение содержало нецензурную лексику и было отфильтровано."</span>
+  <span class="cmt"># Список корней матных слов (регистронезависимо)</span>
+  <span class="cmt"># Плагин автоматически ищет вариации с пробелами/символами</span>
+  <span class="attr">words</span>:
+    - <span class="str2">"бля"</span>
+    - <span class="str2">"блят"</span>
+    - <span class="str2">"блять"</span>
+    - <span class="str2">"хуй"</span>
+    - <span class="str2">"хуя"</span>
+    - <span class="str2">"хуе"</span>
+    - <span class="str2">"хуё"</span>
+    - <span class="str2">"пизд"</span>
+    - <span class="str2">"пизж"</span>
+    - <span class="str2">"ебат"</span>
+    - <span class="str2">"ебан"</span>
+    - <span class="str2">"ебал"</span>
+    - <span class="str2">"ебну"</span>
+    - <span class="str2">"ёбан"</span>
+    - <span class="str2">"ёбну"</span>
+    - <span class="str2">"ебло"</span>
+    - <span class="str2">"еблан"</span>
+    - <span class="str2">"залуп"</span>
+    - <span class="str2">"муда"</span>
+    - <span class="str2">"мудак"</span>
+    - <span class="str2">"сука"</span>
+    - <span class="str2">"суки"</span>
+    - <span class="str2">"сучк"</span>
+    - <span class="str2">"сучар"</span>
+    - <span class="str2">"нахуй"</span>
+    - <span class="str2">"нахер"</span>
+    - <span class="str2">"похуй"</span>
+    - <span class="str2">"пошёл нах"</span>
+    - <span class="str2">"пошел нах"</span>
+    - <span class="str2">"дерьм"</span>
+    - <span class="str2">"гандон"</span>
+    - <span class="str2">"гондон"</span>
+    - <span class="str2">"шлюх"</span>
+    - <span class="str2">"шалав"</span>
+    - <span class="str2">"пидор"</span>
+    - <span class="str2">"пидар"</span>
+    - <span class="str2">"педик"</span>
+    - <span class="str2">"долбо"</span>
+    - <span class="str2">"дрочи"</span>
+    - <span class="str2">"засранец"</span>
+    - <span class="str2">"жопа"</span>
+<span class="cmt"># ── Анти-спам ──────────────────────────────────────────────</span>
+<span class="attr">antispam</span>:
+  <span class="attr">enabled</span>: <span class="num">true</span>
+  <span class="cmt"># Задержка между сообщениями (мс)</span>
+  <span class="attr">cooldown</span>: <span class="num">2000</span>
+  <span class="cmt"># Максимальный процент КАПСА (0.0 - 1.0)</span>
+  <span class="attr">max-caps-percent</span>: <span class="num">0.7</span>
+  <span class="cmt"># Минимальная длина сообщения для проверки капса</span>
+  <span class="attr">caps-min-length</span>: <span class="num">5</span>
+  <span class="cmt"># Блокировка повторных сообщений</span>
+  <span class="attr">block-repeats</span>: <span class="num">true</span>
+  <span class="cmt"># Сообщения при спаме</span>
+  <span class="attr">messages</span>:
+    <span class="attr">cooldown</span>: <span class="str2">"&lt;red&gt;⏳ &lt;gray&gt;Подожди немного перед следующим сообщением!"</span>
+    <span class="attr">caps</span>: <span class="str2">"&lt;red&gt;🔊 &lt;gray&gt;Слишком много заглавных букв!"</span>
+    <span class="attr">repeat</span>: <span class="str2">"&lt;red&gt;🔁 &lt;gray&gt;Не повторяй одно и то же!"</span>
+<span class="cmt"># ── Упоминания ─────────────────────────────────────────────</span>
+<span class="attr">mentions</span>:
+  <span class="attr">enabled</span>: <span class="num">true</span>
+  <span class="attr">symbol</span>: <span class="str2">"@"</span>
+  <span class="attr">color</span>: <span class="str2">"&lt;aqua&gt;"</span>
+  <span class="attr">sound</span>:
+    <span class="attr">enabled</span>: <span class="num">true</span>
+    <span class="attr">type</span>: <span class="str2">"BLOCK_NOTE_BLOCK_PLING"</span>
+    <span class="attr">volume</span>: <span class="num">1.0</span>
+    <span class="attr">pitch</span>: <span class="num">1.5</span>
+<span class="cmt"># ── Сообщения плагина ──────────────────────────────────────</span>
+<span class="attr">messages</span>:
+  <span class="attr">prefix</span>: <span class="str2">"&lt;gray&gt;[&lt;gradient:green:dark_green&gt;SUSChat&lt;/gradient&gt;&lt;gray&gt;] "</span>
+  <span class="attr">reload-success</span>: <span class="str2">"&lt;green&gt;✔ &lt;gray&gt;Конфигурация успешно перезагружена!"</span>
+  <span class="attr">no-permission</span>: <span class="str2">"&lt;red&gt;✖ &lt;gray&gt;У тебя нет прав для этого!"</span>
+  <span class="attr">ad-cooldown</span>: <span class="str2">"&lt;red&gt;⏳ &lt;gray&gt;Подожди ещё &lt;gold&gt;{time}&lt;/gold&gt; &lt;gray&gt;сек. перед новым объявлением."</span>
+  <span class="attr">ad-too-short</span>: <span class="str2">"&lt;red&gt;✖ &lt;gray&gt;Объявление слишком короткое! Минимум &lt;gold&gt;{min}&lt;/gold&gt; &lt;gray&gt;символов."</span></pre></div>
+                </div>
+            </div>
+            <!-- SUSChatPlugin.java -->
+            <div class="tab-content" id="tab-main">
+                <div class="code-block box-glow-green">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-400 text-sm font-mono">📄 SUSChatPlugin.java</span>
+                            <span class="text-xs px-2 py-0.5 bg-green-500/10 text-green-400 rounded-full">Main</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.chat.ChatManager</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.command.AdCommand</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.command.SUSChatCommand</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.config.ConfigManager</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.filter.AntiSpam</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.filter.SwearFilter</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.listener.ChatListener</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.plugin.java.JavaPlugin</span>;
+<span class="kw">import</span> <span class="type">java.util.logging.Level</span>;
+<span class="cmt">/**
+ * Главный класс плагина SUSChat для SUS World 1.21.1
+ * Чат-система с глобальным/локальным чатом, объявлениями, фильтром мата
+ */</span>
+<span class="kw">public class</span> <span class="type">SUSChatPlugin</span> <span class="kw">extends</span> <span class="type">JavaPlugin</span> {
+    <span class="kw">private static</span> <span class="type">SUSChatPlugin</span> <span class="var">instance</span>;
+    <span class="kw">private</span> <span class="type">ConfigManager</span> <span class="var">configManager</span>;
+    <span class="kw">private</span> <span class="type">ChatManager</span> <span class="var">chatManager</span>;
+    <span class="kw">private</span> <span class="type">SwearFilter</span> <span class="var">swearFilter</span>;
+    <span class="kw">private</span> <span class="type">AntiSpam</span> <span class="var">antiSpam</span>;
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">onEnable</span>() {
+        <span class="var">instance</span> = <span class="kw">this</span>;
+        <span class="cmt">// Сохраняем дефолтный конфиг</span>
+        saveDefaultConfig();
+        <span class="cmt">// Инициализация менеджеров</span>
+        <span class="kw">this</span>.<span class="var">configManager</span> = <span class="kw">new</span> <span class="type">ConfigManager</span>(<span class="kw">this</span>);
+        <span class="kw">this</span>.<span class="var">swearFilter</span> = <span class="kw">new</span> <span class="type">SwearFilter</span>(<span class="kw">this</span>);
+        <span class="kw">this</span>.<span class="var">antiSpam</span> = <span class="kw">new</span> <span class="type">AntiSpam</span>(<span class="kw">this</span>);
+        <span class="kw">this</span>.<span class="var">chatManager</span> = <span class="kw">new</span> <span class="type">ChatManager</span>(<span class="kw">this</span>);
+        <span class="cmt">// Регистрация слушателей</span>
+        getServer().getPluginManager().registerEvents(
+            <span class="kw">new</span> <span class="type">ChatListener</span>(<span class="kw">this</span>), <span class="kw">this</span>
+        );
+        <span class="cmt">// Регистрация команд</span>
+        getCommand(<span class="str">"ad"</span>).setExecutor(<span class="kw">new</span> <span class="type">AdCommand</span>(<span class="kw">this</span>));
+        getCommand(<span class="str">"suschat"</span>).setExecutor(<span class="kw">new</span> <span class="type">SUSChatCommand</span>(<span class="kw">this</span>));
+        <span class="cmt">// ASCII арт в консоль</span>
+        printStartupBanner();
+        getLogger().info(<span class="str">"SUSChat v"</span> + getDescription().getVersion() + <span class="str">" успешно загружен!"</span>);
+    }
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">onDisable</span>() {
+        getLogger().info(<span class="str">"SUSChat выключен. До встречи!"</span>);
+        <span class="var">instance</span> = <span class="kw">null</span>;
+    }
+    <span class="cmt">/**
+     * Перезагрузка всех компонентов плагина
+     */</span>
+    <span class="kw">public void</span> <span class="fn">reload</span>() {
+        reloadConfig();
+        <span class="var">configManager</span>.reload();
+        <span class="var">swearFilter</span>.reload();
+        <span class="var">antiSpam</span>.reload();
+        <span class="var">chatManager</span>.reload();
+        getLogger().info(<span class="str">"Конфигурация перезагружена!"</span>);
+    }
+    <span class="kw">private void</span> <span class="fn">printStartupBanner</span>() {
+        getLogger().log(<span class="type">Level</span>.INFO, <span class="str">""</span>);
+        getLogger().log(<span class="type">Level</span>.INFO, <span class="str">"  ╔═══════════════════════════════╗"</span>);
+        getLogger().log(<span class="type">Level</span>.INFO, <span class="str">"  ║     SUS World Chat v2.0      ║"</span>);
+        getLogger().log(<span class="type">Level</span>.INFO, <span class="str">"  ║     Minecraft 1.21.1         ║"</span>);
+        getLogger().log(<span class="type">Level</span>.INFO, <span class="str">"  ╚═══════════════════════════════╝"</span>);
+        getLogger().log(<span class="type">Level</span>.INFO, <span class="str">""</span>);
+    }
+    <span class="cmt">// ── Getters ──────────────────────────────────────────</span>
+    <span class="kw">public static</span> <span class="type">SUSChatPlugin</span> <span class="fn">getInstance</span>() { <span class="kw">return</span> <span class="var">instance</span>; }
+    <span class="kw">public</span> <span class="type">ConfigManager</span> <span class="fn">getConfigManager</span>() { <span class="kw">return</span> <span class="var">configManager</span>; }
+    <span class="kw">public</span> <span class="type">ChatManager</span> <span class="fn">getChatManager</span>() { <span class="kw">return</span> <span class="var">chatManager</span>; }
+    <span class="kw">public</span> <span class="type">SwearFilter</span> <span class="fn">getSwearFilter</span>() { <span class="kw">return</span> <span class="var">swearFilter</span>; }
+    <span class="kw">public</span> <span class="type">AntiSpam</span> <span class="fn">getAntiSpam</span>() { <span class="kw">return</span> <span class="var">antiSpam</span>; }
+}</pre></div>
+                </div>
+            </div>
+            <!-- ChatManager.java -->
+            <div class="tab-content" id="tab-chatmanager">
+                <div class="code-block box-glow-purple">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-purple-400 text-sm font-mono">📄 chat/ChatManager.java</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat.chat</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.SUSChatPlugin</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.util.ColorUtil</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.util.SoundUtil</span>;
+<span class="kw">import</span> <span class="type">net.kyori.adventure.text.Component</span>;
+<span class="kw">import</span> <span class="type">net.kyori.adventure.text.minimessage.MiniMessage</span>;
+<span class="kw">import</span> <span class="type">net.kyori.adventure.title.Title</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.Bukkit</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.Sound</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.entity.Player</span>;
+<span class="kw">import</span> <span class="type">java.time.Duration</span>;
+<span class="kw">import</span> <span class="type">java.util.*</span>;
+<span class="cmt">/**
+ * Менеджер чата — обрабатывает отправку глобальных, локальных
+ * сообщений и объявлений
+ */</span>
+<span class="kw">public class</span> <span class="type">ChatManager</span> {
+    <span class="kw">private final</span> <span class="type">SUSChatPlugin</span> <span class="var">plugin</span>;
+    <span class="kw">private final</span> <span class="type">MiniMessage</span> <span class="var">miniMessage</span>;
+    <span class="kw">private final</span> <span class="type">ChatFormatter</span> <span class="var">formatter</span>;
+    <span class="cmt">// Кулдаун объявлений (UUID -> timestamp)</span>
+    <span class="kw">private final</span> <span class="type">Map</span>&lt;<span class="type">UUID</span>, <span class="type">Long</span>&gt; <span class="var">adCooldowns</span> = <span class="kw">new</span> <span class="type">HashMap</span>&lt;&gt;();
+    <span class="kw">public</span> <span class="fn">ChatManager</span>(<span class="type">SUSChatPlugin</span> <span class="var">plugin</span>) {
+        <span class="kw">this</span>.<span class="var">plugin</span> = <span class="var">plugin</span>;
+        <span class="kw">this</span>.<span class="var">miniMessage</span> = <span class="type">MiniMessage</span>.miniMessage();
+        <span class="kw">this</span>.<span class="var">formatter</span> = <span class="kw">new</span> <span class="type">ChatFormatter</span>(<span class="var">plugin</span>);
+    }
+    <span class="cmt">/**
+     * Отправляет глобальное сообщение всем игрокам на сервере
+     */</span>
+    <span class="kw">public void</span> <span class="fn">sendGlobal</span>(<span class="type">Player</span> <span class="var">sender</span>, <span class="type">String</span> <span class="var">message</span>) {
+        <span class="type">String</span> <span class="var">formatted</span> = <span class="var">formatter</span>.format(<span class="type">ChatType</span>.GLOBAL, <span class="var">sender</span>, <span class="var">message</span>);
+        <span class="type">Component</span> <span class="var">component</span> = <span class="var">miniMessage</span>.deserialize(<span class="var">formatted</span>);
+        <span class="cmt">// Обработка упоминаний</span>
+        <span class="kw">for</span> (<span class="type">Player</span> <span class="var">online</span> : <span class="type">Bukkit</span>.getOnlinePlayers()) {
+            <span class="var">online</span>.sendMessage(<span class="var">component</span>);
+            checkMention(<span class="var">sender</span>, <span class="var">online</span>, <span class="var">message</span>);
+        }
+        <span class="cmt">// Логгирование в консоль</span>
+        <span class="var">plugin</span>.getLogger().info(<span class="str">"[G] "</span> + <span class="var">sender</span>.getName() + <span class="str">": "</span> + <span class="var">message</span>);
+    }
+    <span class="cmt">/**
+     * Отправляет локальное сообщение игрокам в радиусе
+     */</span>
+    <span class="kw">public void</span> <span class="fn">sendLocal</span>(<span class="type">Player</span> <span class="var">sender</span>, <span class="type">String</span> <span class="var">message</span>) {
+        <span class="type">int</span> <span class="var">radius</span> = <span class="var">plugin</span>.getConfig().getInt(<span class="str">"chat.local-radius"</span>, <span class="num">100</span>);
+        <span class="type">String</span> <span class="var">formatted</span> = <span class="var">formatter</span>.format(<span class="type">ChatType</span>.LOCAL, <span class="var">sender</span>, <span class="var">message</span>);
+        <span class="type">Component</span> <span class="var">component</span> = <span class="var">miniMessage</span>.deserialize(<span class="var">formatted</span>);
+        <span class="type">boolean</span> <span class="var">anyoneHeard</span> = <span class="kw">false</span>;
+        <span class="kw">for</span> (<span class="type">Player</span> <span class="var">online</span> : <span class="type">Bukkit</span>.getOnlinePlayers()) {
+            <span class="kw">if</span> (<span class="var">online</span>.getWorld().equals(<span class="var">sender</span>.getWorld())) {
+                <span class="kw">double</span> <span class="var">distance</span> = <span class="var">online</span>.getLocation().distance(<span class="var">sender</span>.getLocation());
+                <span class="kw">if</span> (<span class="var">distance</span> <= <span class="var">radius</span>) {
+                    <span class="var">online</span>.sendMessage(<span class="var">component</span>);
+                    checkMention(<span class="var">sender</span>, <span class="var">online</span>, <span class="var">message</span>);
+                    <span class="kw">if</span> (!<span class="var">online</span>.equals(<span class="var">sender</span>)) <span class="var">anyoneHeard</span> = <span class="kw">true</span>;
+                }
+            }
+        }
+        <span class="cmt">// Если никто не услышал — уведомить отправителя</span>
+        <span class="kw">if</span> (!<span class="var">anyoneHeard</span>) {
+            <span class="type">String</span> <span class="var">nobodyMsg</span> = <span class="var">plugin</span>.getConfig().getString(<span class="str">"chat.nobody-nearby"</span>,
+                <span class="str">"&lt;gray&gt;Рядом никого нет..."</span>);
+            <span class="var">sender</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(<span class="var">nobodyMsg</span>));
+        }
+        <span class="var">plugin</span>.getLogger().info(<span class="str">"[L] "</span> + <span class="var">sender</span>.getName() + <span class="str">": "</span> + <span class="var">message</span>);
+    }
+    <span class="cmt">/**
+     * Отправляет объявление всему серверу
+     * @return true если объявление отправлено, false если кулдаун
+     */</span>
+    <span class="kw">public boolean</span> <span class="fn">sendAd</span>(<span class="type">Player</span> <span class="var">sender</span>, <span class="type">String</span> <span class="var">message</span>) {
+        <span class="cmt">// Проверка кулдауна</span>
+        <span class="kw">if</span> (!<span class="var">sender</span>.hasPermission(<span class="str">"suschat.ad.bypass-cooldown"</span>)) {
+            <span class="kw">long</span> <span class="var">remaining</span> = getAdCooldownRemaining(<span class="var">sender</span>);
+            <span class="kw">if</span> (<span class="var">remaining</span> > <span class="num">0</span>) {
+                <span class="type">String</span> <span class="var">cooldownMsg</span> = <span class="var">plugin</span>.getConfig()
+                    .getString(<span class="str">"messages.ad-cooldown"</span>, <span class="str">"&lt;red&gt;Подожди {time} сек."</span>)
+                    .replace(<span class="str">"{time}"</span>, <span class="type">String</span>.valueOf(<span class="var">remaining</span>));
+                <span class="var">sender</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(
+                    <span class="var">plugin</span>.getConfig().getString(<span class="str">"messages.prefix"</span>, <span class="str">""</span>) + <span class="var">cooldownMsg</span>));
+                <span class="kw">return false</span>;
+            }
+        }
+        <span class="cmt">// Проверка минимальной длины</span>
+        <span class="type">int</span> <span class="var">minLen</span> = <span class="var">plugin</span>.getConfig().getInt(<span class="str">"ad.min-length"</span>, <span class="num">10</span>);
+        <span class="kw">if</span> (<span class="var">message</span>.length() < <span class="var">minLen</span>) {
+            <span class="type">String</span> <span class="var">tooShortMsg</span> = <span class="var">plugin</span>.getConfig()
+                .getString(<span class="str">"messages.ad-too-short"</span>, <span class="str">"&lt;red&gt;Слишком коротко!"</span>)
+                .replace(<span class="str">"{min}"</span>, <span class="type">String</span>.valueOf(<span class="var">minLen</span>));
+            <span class="var">sender</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(
+                <span class="var">plugin</span>.getConfig().getString(<span class="str">"messages.prefix"</span>, <span class="str">""</span>) + <span class="var">tooShortMsg</span>));
+            <span class="kw">return false</span>;
+        }
+        <span class="cmt">// Форматирование объявления</span>
+        <span class="type">String</span> <span class="var">header</span> = <span class="var">plugin</span>.getConfig().getString(<span class="str">"ad.format.header"</span>, <span class="str">""</span>);
+        <span class="type">String</span> <span class="var">content</span> = <span class="var">plugin</span>.getConfig().getString(<span class="str">"ad.format.content"</span>, <span class="str">"{message}"</span>)
+            .replace(<span class="str">"{player}"</span>, <span class="var">sender</span>.getName())
+            .replace(<span class="str">"{message}"</span>, <span class="var">message</span>);
+        <span class="type">String</span> <span class="var">footer</span> = <span class="var">plugin</span>.getConfig().getString(<span class="str">"ad.format.footer"</span>, <span class="str">""</span>);
+        <span class="type">Component</span> <span class="var">adComponent</span> = <span class="var">miniMessage</span>.deserialize(
+            <span class="var">header</span> + <span class="str">"&lt;newline&gt;"</span> + <span class="var">content</span> + <span class="str">"&lt;newline&gt;"</span> + <span class="var">footer</span>);
+        <span class="cmt">// Отправка всем</span>
+        <span class="kw">for</span> (<span class="type">Player</span> <span class="var">online</span> : <span class="type">Bukkit</span>.getOnlinePlayers()) {
+            <span class="var">online</span>.sendMessage(<span class="var">adComponent</span>);
+            <span class="cmt">// Звук</span>
+            <span class="kw">if</span> (<span class="var">plugin</span>.getConfig().getBoolean(<span class="str">"ad.sound.enabled"</span>, <span class="kw">true</span>)) {
+                <span class="type">SoundUtil</span>.playSound(<span class="var">online</span>,
+                    <span class="var">plugin</span>.getConfig().getString(<span class="str">"ad.sound.type"</span>, <span class="str">"ENTITY_EXPERIENCE_ORB_PICKUP"</span>),
+                    (<span class="kw">float</span>) <span class="var">plugin</span>.getConfig().getDouble(<span class="str">"ad.sound.volume"</span>, <span class="num">1.0</span>),
+                    (<span class="kw">float</span>) <span class="var">plugin</span>.getConfig().getDouble(<span class="str">"ad.sound.pitch"</span>, <span class="num">1.2</span>));
+            }
+            <span class="cmt">// Title</span>
+            <span class="kw">if</span> (<span class="var">plugin</span>.getConfig().getBoolean(<span class="str">"ad.title.enabled"</span>, <span class="kw">true</span>)) {
+                showAdTitle(<span class="var">online</span>, <span class="var">sender</span>.getName());
+            }
+        }
+        <span class="cmt">// Установка кулдауна</span>
+        <span class="var">adCooldowns</span>.put(<span class="var">sender</span>.getUniqueId(), <span class="type">System</span>.currentTimeMillis());
+        <span class="var">plugin</span>.getLogger().info(<span class="str">"[AD] "</span> + <span class="var">sender</span>.getName() + <span class="str">": "</span> + <span class="var">message</span>);
+        <span class="kw">return true</span>;
+    }
+    <span class="cmt">/**
+     * Показывает Title при объявлении
+     */</span>
+    <span class="kw">private void</span> <span class="fn">showAdTitle</span>(<span class="type">Player</span> <span class="var">player</span>, <span class="type">String</span> <span class="var">senderName</span>) {
+        <span class="type">String</span> <span class="var">titleText</span> = <span class="var">plugin</span>.getConfig()
+            .getString(<span class="str">"ad.title.text"</span>, <span class="str">"&lt;gold&gt;📢 Объявление!"</span>);
+        <span class="type">String</span> <span class="var">subtitleText</span> = <span class="var">plugin</span>.getConfig()
+            .getString(<span class="str">"ad.title.subtitle"</span>, <span class="str">"&lt;gray&gt;от {player}"</span>)
+            .replace(<span class="str">"{player}"</span>, <span class="var">senderName</span>);
+        <span class="type">int</span> <span class="var">fadeIn</span> = <span class="var">plugin</span>.getConfig().getInt(<span class="str">"ad.title.fade-in"</span>, <span class="num">10</span>);
+        <span class="type">int</span> <span class="var">stay</span> = <span class="var">plugin</span>.getConfig().getInt(<span class="str">"ad.title.stay"</span>, <span class="num">40</span>);
+        <span class="type">int</span> <span class="var">fadeOut</span> = <span class="var">plugin</span>.getConfig().getInt(<span class="str">"ad.title.fade-out"</span>, <span class="num">10</span>);
+        <span class="type">Title</span> <span class="var">title</span> = <span class="type">Title</span>.title(
+            <span class="var">miniMessage</span>.deserialize(<span class="var">titleText</span>),
+            <span class="var">miniMessage</span>.deserialize(<span class="var">subtitleText</span>),
+            <span class="type">Title</span>.<span class="type">Times</span>.times(
+                <span class="type">Duration</span>.ofMillis(<span class="var">fadeIn</span> * <span class="num">50L</span>),
+                <span class="type">Duration</span>.ofMillis(<span class="var">stay</span> * <span class="num">50L</span>),
+                <span class="type">Duration</span>.ofMillis(<span class="var">fadeOut</span> * <span class="num">50L</span>)
+            )
+        );
+        <span class="var">player</span>.showTitle(<span class="var">title</span>);
+    }
+    <span class="cmt">/**
+     * Проверяет упоминание игрока в сообщении
+     */</span>
+    <span class="kw">private void</span> <span class="fn">checkMention</span>(<span class="type">Player</span> <span class="var">sender</span>, <span class="type">Player</span> <span class="var">target</span>, <span class="type">String</span> <span class="var">message</span>) {
+        <span class="kw">if</span> (<span class="var">sender</span>.equals(<span class="var">target</span>)) <span class="kw">return</span>;
+        <span class="kw">if</span> (!<span class="var">plugin</span>.getConfig().getBoolean(<span class="str">"mentions.enabled"</span>, <span class="kw">true</span>)) <span class="kw">return</span>;
+        <span class="type">String</span> <span class="var">symbol</span> = <span class="var">plugin</span>.getConfig().getString(<span class="str">"mentions.symbol"</span>, <span class="str">"@"</span>);
+        <span class="kw">if</span> (<span class="var">message</span>.toLowerCase().contains(
+                <span class="var">symbol</span> + <span class="var">target</span>.getName().toLowerCase())) {
+            <span class="kw">if</span> (<span class="var">plugin</span>.getConfig().getBoolean(<span class="str">"mentions.sound.enabled"</span>, <span class="kw">true</span>)) {
+                <span class="type">SoundUtil</span>.playSound(<span class="var">target</span>,
+                    <span class="var">plugin</span>.getConfig().getString(<span class="str">"mentions.sound.type"</span>,
+                        <span class="str">"BLOCK_NOTE_BLOCK_PLING"</span>),
+                    (<span class="kw">float</span>) <span class="var">plugin</span>.getConfig().getDouble(<span class="str">"mentions.sound.volume"</span>, <span class="num">1.0</span>),
+                    (<span class="kw">float</span>) <span class="var">plugin</span>.getConfig().getDouble(<span class="str">"mentions.sound.pitch"</span>, <span class="num">1.5</span>));
+            }
+        }
+    }
+    <span class="cmt">/**
+     * Возвращает оставшийся кулдаун объявления в секундах
+     */</span>
+    <span class="kw">public long</span> <span class="fn">getAdCooldownRemaining</span>(<span class="type">Player</span> <span class="var">player</span>) {
+        <span class="kw">if</span> (!<span class="var">adCooldowns</span>.containsKey(<span class="var">player</span>.getUniqueId())) <span class="kw">return</span> <span class="num">0</span>;
+        <span class="kw">long</span> <span class="var">lastUsed</span> = <span class="var">adCooldowns</span>.get(<span class="var">player</span>.getUniqueId());
+        <span class="kw">long</span> <span class="var">cooldownMs</span> = <span class="var">plugin</span>.getConfig().getInt(<span class="str">"ad.cooldown"</span>, <span class="num">300</span>) * <span class="num">1000L</span>;
+        <span class="kw">long</span> <span class="var">elapsed</span> = <span class="type">System</span>.currentTimeMillis() - <span class="var">lastUsed</span>;
+        <span class="kw">if</span> (<span class="var">elapsed</span> >= <span class="var">cooldownMs</span>) <span class="kw">return</span> <span class="num">0</span>;
+        <span class="kw">return</span> (<span class="var">cooldownMs</span> - <span class="var">elapsed</span>) / <span class="num">1000</span>;
+    }
+    <span class="kw">public void</span> <span class="fn">reload</span>() {
+        <span class="var">formatter</span>.reload();
+    }
+    <span class="kw">public</span> <span class="type">ChatFormatter</span> <span class="fn">getFormatter</span>() { <span class="kw">return</span> <span class="var">formatter</span>; }
+}</pre></div>
+                </div>
+            </div>
+            <!-- ChatType.java -->
+            <div class="tab-content" id="tab-chattype">
+                <div class="code-block box-glow-blue">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-blue-400 text-sm font-mono">📄 chat/ChatType.java</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat.chat</span>;
+<span class="cmt">/**
+ * Типы чата в системе SUSChat
+ */</span>
+<span class="kw">public enum</span> <span class="type">ChatType</span> {
+    <span class="var">GLOBAL</span>(<span class="str">"global"</span>, <span class="str">"Глобальный"</span>),
+    <span class="var">LOCAL</span>(<span class="str">"local"</span>, <span class="str">"Локальный"</span>),
+    <span class="var">AD</span>(<span class="str">"ad"</span>, <span class="str">"Объявление"</span>);
+    <span class="kw">private final</span> <span class="type">String</span> <span class="var">key</span>;
+    <span class="kw">private final</span> <span class="type">String</span> <span class="var">displayName</span>;
+    <span class="type">ChatType</span>(<span class="type">String</span> <span class="var">key</span>, <span class="type">String</span> <span class="var">displayName</span>) {
+        <span class="kw">this</span>.<span class="var">key</span> = <span class="var">key</span>;
+        <span class="kw">this</span>.<span class="var">displayName</span> = <span class="var">displayName</span>;
+    }
+    <span class="kw">public</span> <span class="type">String</span> <span class="fn">getKey</span>() { <span class="kw">return</span> <span class="var">key</span>; }
+    <span class="kw">public</span> <span class="type">String</span> <span class="fn">getDisplayName</span>() { <span class="kw">return</span> <span class="var">displayName</span>; }
+}</pre></div>
+                </div>
+            </div>
+            <!-- ChatFormatter.java -->
+            <div class="tab-content" id="tab-chatformatter">
+                <div class="code-block box-glow-purple">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-purple-400 text-sm font-mono">📄 chat/ChatFormatter.java</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat.chat</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.SUSChatPlugin</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.entity.Player</span>;
+<span class="cmt">/**
+ * Форматирование сообщений чата с поддержкой MiniMessage,
+ * плейсхолдеров и упоминаний
+ */</span>
+<span class="kw">public class</span> <span class="type">ChatFormatter</span> {
+    <span class="kw">private final</span> <span class="type">SUSChatPlugin</span> <span class="var">plugin</span>;
+    <span class="kw">private</span> <span class="type">String</span> <span class="var">globalFormat</span>;
+    <span class="kw">private</span> <span class="type">String</span> <span class="var">localFormat</span>;
+    <span class="kw">public</span> <span class="fn">ChatFormatter</span>(<span class="type">SUSChatPlugin</span> <span class="var">plugin</span>) {
+        <span class="kw">this</span>.<span class="var">plugin</span> = <span class="var">plugin</span>;
+        loadFormats();
+    }
+    <span class="kw">private void</span> <span class="fn">loadFormats</span>() {
+        <span class="var">globalFormat</span> = <span class="var">plugin</span>.getConfig().getString(<span class="str">"chat.formats.global"</span>,
+            <span class="str">"&lt;dark_gray&gt;[&lt;gold&gt;G&lt;/gold&gt;] &lt;white&gt;{player} &lt;dark_gray&gt;» &lt;gray&gt;{message}"</span>);
+        <span class="var">localFormat</span> = <span class="var">plugin</span>.getConfig().getString(<span class="str">"chat.formats.local"</span>,
+            <span class="str">"&lt;dark_gray&gt;[&lt;aqua&gt;L&lt;/aqua&gt;] &lt;white&gt;{player} &lt;dark_gray&gt;» &lt;gray&gt;{message}"</span>);
+    }
+    <span class="cmt">/**
+     * Форматирует сообщение для указанного типа чата
+     */</span>
+    <span class="kw">public</span> <span class="type">String</span> <span class="fn">format</span>(<span class="type">ChatType</span> <span class="var">type</span>, <span class="type">Player</span> <span class="var">player</span>, <span class="type">String</span> <span class="var">message</span>) {
+        <span class="type">String</span> <span class="var">template</span> = <span class="kw">switch</span> (<span class="var">type</span>) {
+            <span class="kw">case</span> <span class="var">GLOBAL</span> -> <span class="var">globalFormat</span>;
+            <span class="kw">case</span> <span class="var">LOCAL</span> -> <span class="var">localFormat</span>;
+            <span class="kw">default</span> -> <span class="str">"{message}"</span>;
+        };
+        <span class="cmt">// Обработка упоминаний в сообщении</span>
+        <span class="var">message</span> = processMentions(<span class="var">message</span>);
+        <span class="cmt">// Замена плейсхолдеров</span>
+        <span class="kw">return</span> <span class="var">template</span>
+            .replace(<span class="str">"{player}"</span>, <span class="var">player</span>.getName())
+            .replace(<span class="str">"{message}"</span>, <span class="var">message</span>)
+            .replace(<span class="str">"{world}"</span>, <span class="var">player</span>.getWorld().getName())
+            .replace(<span class="str">"{prefix}"</span>, getPrefix(<span class="var">player</span>))
+            .replace(<span class="str">"{suffix}"</span>, getSuffix(<span class="var">player</span>));
+    }
+    <span class="cmt">/**
+     * Обрабатывает @упоминания в сообщении, подсвечивая их
+     */</span>
+    <span class="kw">private</span> <span class="type">String</span> <span class="fn">processMentions</span>(<span class="type">String</span> <span class="var">message</span>) {
+        <span class="kw">if</span> (!<span class="var">plugin</span>.getConfig().getBoolean(<span class="str">"mentions.enabled"</span>, <span class="kw">true</span>)) {
+            <span class="kw">return</span> <span class="var">message</span>;
+        }
+        <span class="type">String</span> <span class="var">mentionColor</span> = <span class="var">plugin</span>.getConfig()
+            .getString(<span class="str">"mentions.color"</span>, <span class="str">"&lt;aqua&gt;"</span>);
+        <span class="type">String</span> <span class="var">symbol</span> = <span class="var">plugin</span>.getConfig()
+            .getString(<span class="str">"mentions.symbol"</span>, <span class="str">"@"</span>);
+        <span class="kw">for</span> (<span class="type">Player</span> <span class="var">online</span> : <span class="var">plugin</span>.getServer().getOnlinePlayers()) {
+            <span class="type">String</span> <span class="var">mention</span> = <span class="var">symbol</span> + <span class="var">online</span>.getName();
+            <span class="kw">if</span> (<span class="var">message</span>.toLowerCase().contains(<span class="var">mention</span>.toLowerCase())) {
+                <span class="var">message</span> = <span class="var">message</span>.replaceAll(
+                    <span class="str">"(?i)"</span> + <span class="type">java.util.regex.Pattern</span>.quote(<span class="var">mention</span>),
+                    <span class="var">mentionColor</span> + <span class="var">mention</span> + <span class="str">"&lt;gray&gt;"</span>
+                );
+            }
+        }
+        <span class="kw">return</span> <span class="var">message</span>;
+    }
+    <span class="cmt">/**
+     * Получает префикс игрока (заглушка для Vault/LuckPerms)
+     */</span>
+    <span class="kw">private</span> <span class="type">String</span> <span class="fn">getPrefix</span>(<span class="type">Player</span> <span class="var">player</span>) {
+        <span class="cmt">// Тут можно подключить Vault API</span>
+        <span class="cmt">// Пока возвращаем пустую строку</span>
+        <span class="kw">return</span> <span class="str">""</span>;
+    }
+    <span class="kw">private</span> <span class="type">String</span> <span class="fn">getSuffix</span>(<span class="type">Player</span> <span class="var">player</span>) {
+        <span class="kw">return</span> <span class="str">""</span>;
+    }
+    <span class="kw">public void</span> <span class="fn">reload</span>() {
+        loadFormats();
+    }
+}</pre></div>
+                </div>
+            </div>
+            <!-- ChatListener.java -->
+            <div class="tab-content" id="tab-chatlistener">
+                <div class="code-block box-glow-green">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-cyan-400 text-sm font-mono">📄 listener/ChatListener.java</span>
+                            <span class="text-xs px-2 py-0.5 bg-cyan-500/10 text-cyan-400 rounded-full">Event</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat.listener</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.SUSChatPlugin</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.filter.AntiSpam</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.filter.SwearFilter</span>;
+<span class="kw">import</span> <span class="type">io.papermc.paper.event.player.AsyncChatEvent</span>;
+<span class="kw">import</span> <span class="type">net.kyori.adventure.text.minimessage.MiniMessage</span>;
+<span class="kw">import</span> <span class="type">net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.entity.Player</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.event.EventHandler</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.event.EventPriority</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.event.Listener</span>;
+<span class="cmt">/**
+ * Слушатель событий чата
+ * Перехватывает все сообщения и маршрутизирует их
+ */</span>
+<span class="kw">public class</span> <span class="type">ChatListener</span> <span class="kw">implements</span> <span class="type">Listener</span> {
+    <span class="kw">private final</span> <span class="type">SUSChatPlugin</span> <span class="var">plugin</span>;
+    <span class="kw">private final</span> <span class="type">MiniMessage</span> <span class="var">miniMessage</span>;
+    <span class="kw">public</span> <span class="fn">ChatListener</span>(<span class="type">SUSChatPlugin</span> <span class="var">plugin</span>) {
+        <span class="kw">this</span>.<span class="var">plugin</span> = <span class="var">plugin</span>;
+        <span class="kw">this</span>.<span class="var">miniMessage</span> = <span class="type">MiniMessage</span>.miniMessage();
+    }
+    <span class="ann">@EventHandler</span>(priority = <span class="type">EventPriority</span>.HIGHEST, ignoreCancelled = <span class="kw">true</span>)
+    <span class="kw">public void</span> <span class="fn">onChat</span>(<span class="type">AsyncChatEvent</span> <span class="var">event</span>) {
+        <span class="cmt">// Отменяем стандартную обработку чата</span>
+        <span class="var">event</span>.setCancelled(<span class="kw">true</span>);
+        <span class="type">Player</span> <span class="var">player</span> = <span class="var">event</span>.getPlayer();
+        <span class="type">String</span> <span class="var">rawMessage</span> = <span class="type">PlainTextComponentSerializer</span>.plainText()
+            .serialize(<span class="var">event</span>.message());
+        <span class="cmt">// ── Анти-спам ─────────────────────────────────────</span>
+        <span class="type">AntiSpam</span> <span class="var">antiSpam</span> = <span class="var">plugin</span>.getAntiSpam();
+        <span class="kw">if</span> (!<span class="var">player</span>.hasPermission(<span class="str">"suschat.bypass.spam"</span>)) {
+            <span class="type">AntiSpam.SpamResult</span> <span class="var">spamResult</span> = <span class="var">antiSpam</span>.check(<span class="var">player</span>, <span class="var">rawMessage</span>);
+            <span class="kw">if</span> (<span class="var">spamResult</span> != <span class="type">AntiSpam.SpamResult</span>.OK) {
+                <span class="type">String</span> <span class="var">msg</span> = <span class="kw">switch</span> (<span class="var">spamResult</span>) {
+                    <span class="kw">case</span> <span class="var">COOLDOWN</span> -> <span class="var">plugin</span>.getConfig()
+                        .getString(<span class="str">"antispam.messages.cooldown"</span>, <span class="str">"&lt;red&gt;Подожди!"</span>);
+                    <span class="kw">case</span> <span class="var">CAPS</span> -> <span class="var">plugin</span>.getConfig()
+                        .getString(<span class="str">"antispam.messages.caps"</span>, <span class="str">"&lt;red&gt;Много капса!"</span>);
+                    <span class="kw">case</span> <span class="var">REPEAT</span> -> <span class="var">plugin</span>.getConfig()
+                        .getString(<span class="str">"antispam.messages.repeat"</span>, <span class="str">"&lt;red&gt;Повтор!"</span>);
+                    <span class="kw">default</span> -> <span class="str">""</span>;
+                };
+                <span class="var">player</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(
+                    <span class="var">plugin</span>.getConfig().getString(<span class="str">"messages.prefix"</span>, <span class="str">""</span>) + <span class="var">msg</span>));
+                <span class="kw">return</span>;
+            }
+        }
+        <span class="cmt">// ── Фильтр мата ──────────────────────────────────</span>
+        <span class="type">String</span> <span class="var">message</span> = <span class="var">rawMessage</span>;
+        <span class="type">SwearFilter</span> <span class="var">filter</span> = <span class="var">plugin</span>.getSwearFilter();
+        <span class="kw">if</span> (<span class="var">filter</span>.isEnabled() && !<span class="var">player</span>.hasPermission(<span class="str">"suschat.bypass.filter"</span>)) {
+            <span class="type">SwearFilter.FilterResult</span> <span class="var">result</span> = <span class="var">filter</span>.filter(<span class="var">message</span>);
+            <span class="var">message</span> = <span class="var">result</span>.filteredMessage();
+            <span class="kw">if</span> (<span class="var">result</span>.wasFiltered()) {
+                <span class="type">String</span> <span class="var">warnMsg</span> = <span class="var">plugin</span>.getConfig().getString(
+                    <span class="str">"filter.warn-message"</span>, <span class="str">"&lt;red&gt;Мат заблокирован."</span>);
+                <span class="var">player</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(<span class="var">warnMsg</span>));
+            }
+        }
+        <span class="cmt">// ── Убираем MiniMessage теги от обычных игроков ──</span>
+        <span class="kw">if</span> (!<span class="var">player</span>.hasPermission(<span class="str">"suschat.chat.color"</span>)) {
+            <span class="var">message</span> = stripMiniMessageTags(<span class="var">message</span>);
+        }
+        <span class="cmt">// ── Определяем тип чата ──────────────────────────</span>
+        <span class="type">String</span> <span class="var">globalPrefix</span> = <span class="var">plugin</span>.getConfig()
+            .getString(<span class="str">"chat.global-prefix"</span>, <span class="str">"!"</span>);
+        <span class="kw">if</span> (<span class="var">message</span>.startsWith(<span class="var">globalPrefix</span>)) {
+            <span class="cmt">// Глобальный чат</span>
+            <span class="kw">if</span> (!<span class="var">player</span>.hasPermission(<span class="str">"suschat.chat.global"</span>)) {
+                <span class="var">player</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(
+                    <span class="var">plugin</span>.getConfig().getString(<span class="str">"messages.prefix"</span>, <span class="str">""</span>) +
+                    <span class="var">plugin</span>.getConfig().getString(<span class="str">"messages.no-permission"</span>,
+                        <span class="str">"&lt;red&gt;Нет прав!"</span>)));
+                <span class="kw">return</span>;
+            }
+            <span class="type">String</span> <span class="var">globalMessage</span> = <span class="var">message</span>.substring(<span class="var">globalPrefix</span>.length()).trim();
+            <span class="kw">if</span> (!<span class="var">globalMessage</span>.isEmpty()) {
+                <span class="var">plugin</span>.getChatManager().sendGlobal(<span class="var">player</span>, <span class="var">globalMessage</span>);
+            }
+        } <span class="kw">else</span> {
+            <span class="cmt">// Локальный чат (по умолчанию)</span>
+            <span class="var">plugin</span>.getChatManager().sendLocal(<span class="var">player</span>, <span class="var">message</span>);
+        }
+    }
+    <span class="cmt">/**
+     * Убирает MiniMessage теги из сообщения
+     */</span>
+    <span class="kw">private</span> <span class="type">String</span> <span class="fn">stripMiniMessageTags</span>(<span class="type">String</span> <span class="var">message</span>) {
+        <span class="kw">return</span> <span class="var">message</span>.replaceAll(<span class="str">"&lt;[^&gt;]+&gt;"</span>, <span class="str">""</span>);
+    }
+}</pre></div>
+                </div>
+            </div>
+            <!-- AdCommand.java -->
+            <div class="tab-content" id="tab-adcommand">
+                <div class="code-block box-glow-gold">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-orange-400 text-sm font-mono">📄 command/AdCommand.java</span>
+                            <span class="text-xs px-2 py-0.5 bg-orange-500/10 text-orange-400 rounded-full">Command</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat.command</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.SUSChatPlugin</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.filter.SwearFilter</span>;
+<span class="kw">import</span> <span class="type">net.kyori.adventure.text.minimessage.MiniMessage</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.command.Command</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.command.CommandExecutor</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.command.CommandSender</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.entity.Player</span>;
+<span class="kw">import</span> <span class="type">org.jetbrains.annotations.NotNull</span>;
+<span class="cmt">/**
+ * Команда /ad — объявления на весь сервер
+ * Использование: /ad &lt;сообщение&gt;
+ */</span>
+<span class="kw">public class</span> <span class="type">AdCommand</span> <span class="kw">implements</span> <span class="type">CommandExecutor</span> {
+    <span class="kw">private final</span> <span class="type">SUSChatPlugin</span> <span class="var">plugin</span>;
+    <span class="kw">private final</span> <span class="type">MiniMessage</span> <span class="var">miniMessage</span>;
+    <span class="kw">public</span> <span class="fn">AdCommand</span>(<span class="type">SUSChatPlugin</span> <span class="var">plugin</span>) {
+        <span class="kw">this</span>.<span class="var">plugin</span> = <span class="var">plugin</span>;
+        <span class="kw">this</span>.<span class="var">miniMessage</span> = <span class="type">MiniMessage</span>.miniMessage();
+    }
+    <span class="ann">@Override</span>
+    <span class="kw">public boolean</span> <span class="fn">onCommand</span>(<span class="ann">@NotNull</span> <span class="type">CommandSender</span> <span class="var">sender</span>,
+                             <span class="ann">@NotNull</span> <span class="type">Command</span> <span class="var">command</span>,
+                             <span class="ann">@NotNull</span> <span class="type">String</span> <span class="var">label</span>,
+                             <span class="ann">@NotNull</span> <span class="type">String</span>[] <span class="var">args</span>) {
+        <span class="kw">if</span> (!(<span class="var">sender</span> <span class="kw">instanceof</span> <span class="type">Player</span> <span class="var">player</span>)) {
+            <span class="var">sender</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(
+                <span class="str">"&lt;red&gt;Эту команду может использовать только игрок!"</span>));
+            <span class="kw">return true</span>;
+        }
+        <span class="cmt">// Проверка прав</span>
+        <span class="kw">if</span> (!<span class="var">player</span>.hasPermission(<span class="str">"suschat.ad"</span>)) {
+            <span class="var">player</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(
+                <span class="var">plugin</span>.getConfig().getString(<span class="str">"messages.prefix"</span>, <span class="str">""</span>) +
+                <span class="var">plugin</span>.getConfig().getString(<span class="str">"messages.no-permission"</span>,
+                    <span class="str">"&lt;red&gt;Нет прав!"</span>)));
+            <span class="kw">return true</span>;
+        }
+        <span class="cmt">// Проверка наличия сообщения</span>
+        <span class="kw">if</span> (<span class="var">args</span>.length == <span class="num">0</span>) {
+            <span class="var">player</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(
+                <span class="var">plugin</span>.getConfig().getString(<span class="str">"messages.prefix"</span>, <span class="str">""</span>) +
+                <span class="str">"&lt;gray&gt;Использование: &lt;gold&gt;/ad &lt;сообщение&gt;"</span>));
+            <span class="kw">return true</span>;
+        }
+        <span class="cmt">// Собираем сообщение из аргументов</span>
+        <span class="type">String</span> <span class="var">message</span> = <span class="type">String</span>.join(<span class="str">" "</span>, <span class="var">args</span>);
+        <span class="cmt">// Фильтр мата</span>
+        <span class="type">SwearFilter</span> <span class="var">filter</span> = <span class="var">plugin</span>.getSwearFilter();
+        <span class="kw">if</span> (<span class="var">filter</span>.isEnabled() && !<span class="var">player</span>.hasPermission(<span class="str">"suschat.bypass.filter"</span>)) {
+            <span class="type">SwearFilter.FilterResult</span> <span class="var">result</span> = <span class="var">filter</span>.filter(<span class="var">message</span>);
+            <span class="var">message</span> = <span class="var">result</span>.filteredMessage();
+            <span class="kw">if</span> (<span class="var">result</span>.wasFiltered()) {
+                <span class="var">player</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(
+                    <span class="var">plugin</span>.getConfig().getString(<span class="str">"filter.warn-message"</span>,
+                        <span class="str">"&lt;red&gt;Мат отфильтрован."</span>)));
+            }
+        }
+        <span class="cmt">// Отправка объявления</span>
+        <span class="var">plugin</span>.getChatManager().sendAd(<span class="var">player</span>, <span class="var">message</span>);
+        <span class="kw">return true</span>;
+    }
+}</pre></div>
+                </div>
+            </div>
+            <!-- SUSChatCommand.java -->
+            <div class="tab-content" id="tab-suschatcmd">
+                <div class="code-block box-glow-green">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-orange-400 text-sm font-mono">📄 command/SUSChatCommand.java</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat.command</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.SUSChatPlugin</span>;
+<span class="kw">import</span> <span class="type">net.kyori.adventure.text.minimessage.MiniMessage</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.command.Command</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.command.CommandExecutor</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.command.CommandSender</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.command.TabCompleter</span>;
+<span class="kw">import</span> <span class="type">org.jetbrains.annotations.NotNull</span>;
+<span class="kw">import</span> <span class="type">org.jetbrains.annotations.Nullable</span>;
+<span class="kw">import</span> <span class="type">java.util.Arrays</span>;
+<span class="kw">import</span> <span class="type">java.util.List</span>;
+<span class="cmt">/**
+ * Административная команда /suschat
+ * Подкоманды: reload, help
+ */</span>
+<span class="kw">public class</span> <span class="type">SUSChatCommand</span> <span class="kw">implements</span> <span class="type">CommandExecutor</span>, <span class="type">TabCompleter</span> {
+    <span class="kw">private final</span> <span class="type">SUSChatPlugin</span> <span class="var">plugin</span>;
+    <span class="kw">private final</span> <span class="type">MiniMessage</span> <span class="var">miniMessage</span>;
+    <span class="kw">public</span> <span class="fn">SUSChatCommand</span>(<span class="type">SUSChatPlugin</span> <span class="var">plugin</span>) {
+        <span class="kw">this</span>.<span class="var">plugin</span> = <span class="var">plugin</span>;
+        <span class="kw">this</span>.<span class="var">miniMessage</span> = <span class="type">MiniMessage</span>.miniMessage();
+        <span class="cmt">// Регистрируем TabCompleter</span>
+        <span class="var">plugin</span>.getCommand(<span class="str">"suschat"</span>).setTabCompleter(<span class="kw">this</span>);
+    }
+    <span class="ann">@Override</span>
+    <span class="kw">public boolean</span> <span class="fn">onCommand</span>(<span class="ann">@NotNull</span> <span class="type">CommandSender</span> <span class="var">sender</span>,
+                             <span class="ann">@NotNull</span> <span class="type">Command</span> <span class="var">command</span>,
+                             <span class="ann">@NotNull</span> <span class="type">String</span> <span class="var">label</span>,
+                             <span class="ann">@NotNull</span> <span class="type">String</span>[] <span class="var">args</span>) {
+        <span class="type">String</span> <span class="var">prefix</span> = <span class="var">plugin</span>.getConfig().getString(<span class="str">"messages.prefix"</span>, <span class="str">""</span>);
+        <span class="kw">if</span> (<span class="var">args</span>.length == <span class="num">0</span>) {
+            sendHelp(<span class="var">sender</span>);
+            <span class="kw">return true</span>;
+        }
+        <span class="kw">switch</span> (<span class="var">args</span>[<span class="num">0</span>].toLowerCase()) {
+            <span class="kw">case</span> <span class="str">"reload"</span> -> {
+                <span class="kw">if</span> (!<span class="var">sender</span>.hasPermission(<span class="str">"suschat.admin"</span>)) {
+                    <span class="var">sender</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(
+                        <span class="var">prefix</span> + <span class="var">plugin</span>.getConfig().getString(
+                            <span class="str">"messages.no-permission"</span>, <span class="str">"&lt;red&gt;Нет прав!"</span>)));
+                    <span class="kw">return true</span>;
+                }
+                <span class="var">plugin</span>.reload();
+                <span class="var">sender</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(
+                    <span class="var">prefix</span> + <span class="var">plugin</span>.getConfig().getString(
+                        <span class="str">"messages.reload-success"</span>,
+                        <span class="str">"&lt;green&gt;Перезагружено!"</span>)));
+            }
+            <span class="kw">case</span> <span class="str">"help"</span> -> sendHelp(<span class="var">sender</span>);
+            <span class="kw">default</span> -> <span class="var">sender</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(
+                <span class="var">prefix</span> + <span class="str">"&lt;red&gt;Неизвестная подкоманда. Используй /suschat help"</span>));
+        }
+        <span class="kw">return true</span>;
+    }
+    <span class="kw">private void</span> <span class="fn">sendHelp</span>(<span class="type">CommandSender</span> <span class="var">sender</span>) {
+        <span class="var">sender</span>.sendMessage(<span class="var">miniMessage</span>.deserialize(<span class="str">"""
+            &lt;newline&gt;\
+            &lt;gray&gt;╔══════════════════════════════════════╗&lt;newline&gt;\
+            &lt;gray&gt;║ &lt;gradient:green:dark_green&gt;SUS World Chat&lt;/gradient&gt; &lt;dark_gray&gt;v2.0&lt;newline&gt;\
+            &lt;gray&gt;╠══════════════════════════════════════╣&lt;newline&gt;\
+            &lt;gray&gt;║ &lt;gold&gt;!&lt;сообщение&gt; &lt;dark_gray&gt;— &lt;gray&gt;Глобальный чат&lt;newline&gt;\
+            &lt;gray&gt;║ &lt;gold&gt;обычное сообщение &lt;dark_gray&gt;— &lt;gray&gt;Локальный чат&lt;newline&gt;\
+            &lt;gray&gt;║ &lt;gold&gt;/ad &lt;сообщение&gt; &lt;dark_gray&gt;— &lt;gray&gt;Объявление&lt;newline&gt;\
+            &lt;gray&gt;║ &lt;gold&gt;/suschat reload &lt;dark_gray&gt;— &lt;gray&gt;Перезагрузка&lt;newline&gt;\
+            &lt;gray&gt;║ &lt;gold&gt;@ник &lt;dark_gray&gt;— &lt;gray&gt;Упоминание игрока&lt;newline&gt;\
+            &lt;gray&gt;╚══════════════════════════════════════╝\
+            &lt;newline&gt;\
+            """</span>));
+    }
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> <span class="ann">@Nullable</span> <span class="type">List</span>&lt;<span class="type">String</span>&gt; <span class="fn">onTabComplete</span>(<span class="ann">@NotNull</span> <span class="type">CommandSender</span> <span class="var">sender</span>,
+                                                <span class="ann">@NotNull</span> <span class="type">Command</span> <span class="var">command</span>,
+                                                <span class="ann">@NotNull</span> <span class="type">String</span> <span class="var">label</span>,
+                                                <span class="ann">@NotNull</span> <span class="type">String</span>[] <span class="var">args</span>) {
+        <span class="kw">if</span> (<span class="var">args</span>.length == <span class="num">1</span>) {
+            <span class="kw">return</span> <span class="type">Arrays</span>.asList(<span class="str">"reload"</span>, <span class="str">"help"</span>);
+        }
+        <span class="kw">return</span> <span class="type">List</span>.of();
+    }
+}</pre></div>
+                </div>
+            </div>
+            <!-- SwearFilter.java -->
+            <div class="tab-content" id="tab-swearfilter">
+                <div class="code-block box-glow-purple" style="box-shadow: 0 0 30px #ff555522, inset 0 1px 0 #ff555533;">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-red-400 text-sm font-mono">📄 filter/SwearFilter.java</span>
+                            <span class="text-xs px-2 py-0.5 bg-red-500/10 text-red-400 rounded-full">🤬 Filter</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat.filter</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.SUSChatPlugin</span>;
+<span class="kw">import</span> <span class="type">java.util.*</span>;
+<span class="kw">import</span> <span class="type">java.util.regex.Matcher</span>;
+<span class="kw">import</span> <span class="type">java.util.regex.Pattern</span>;
+<span class="cmt">/**
+ * Умный фильтр русского мата
+ *
+ * Возможности:
+ * - Находит мат даже через символы-разделители (пр0б3лы, т0чки)
+ * - Замена символов-аналогов (0=о, 3=з, @=а, etc)
+ * - Заменяет на # символы по длине слова
+ * - Возвращает FilterResult с информацией
+ */</span>
+<span class="kw">public class</span> <span class="type">SwearFilter</span> {
+    <span class="kw">private final</span> <span class="type">SUSChatPlugin</span> <span class="var">plugin</span>;
+    <span class="kw">private</span> <span class="type">List</span>&lt;<span class="type">Pattern</span>&gt; <span class="var">compiledPatterns</span>;
+    <span class="kw">private</span> <span class="type">String</span> <span class="var">replacementChar</span>;
+    <span class="kw">private boolean</span> <span class="var">enabled</span>;
+    <span class="cmt">// Маппинг символов-замен (leet speak для русского)</span>
+    <span class="kw">private static final</span> <span class="type">Map</span>&lt;<span class="type">Character</span>, <span class="type">Character</span>&gt; <span class="var">CHAR_MAP</span> = <span class="type">Map</span>.ofEntries(
+        <span class="type">Map</span>.entry(<span class="str">'0'</span>, <span class="str">'о'</span>), <span class="type">Map</span>.entry(<span class="str">'o'</span>, <span class="str">'о'</span>),
+        <span class="type">Map</span>.entry(<span class="str">'@'</span>, <span class="str">'а'</span>), <span class="type">Map</span>.entry(<span class="str">'a'</span>, <span class="str">'а'</span>),
+        <span class="type">Map</span>.entry(<span class="str">'e'</span>, <span class="str">'е'</span>), <span class="type">Map</span>.entry(<span class="str">'3'</span>, <span class="str">'з'</span>),
+        <span class="type">Map</span>.entry(<span class="str">'u'</span>, <span class="str">'и'</span>), <span class="type">Map</span>.entry(<span class="str">'y'</span>, <span class="str">'у'</span>),
+        <span class="type">Map</span>.entry(<span class="str">'x'</span>, <span class="str">'х'</span>), <span class="type">Map</span>.entry(<span class="str">'k'</span>, <span class="str">'к'</span>),
+        <span class="type">Map</span>.entry(<span class="str">'p'</span>, <span class="str">'р'</span>), <span class="type">Map</span>.entry(<span class="str">'c'</span>, <span class="str">'с'</span>),
+        <span class="type">Map</span>.entry(<span class="str">'6'</span>, <span class="str">'б'</span>), <span class="type">Map</span>.entry(<span class="str">'b'</span>, <span class="str">'б'</span>),
+        <span class="type">Map</span>.entry(<span class="str">'d'</span>, <span class="str">'д'</span>), <span class="type">Map</span>.entry(<span class="str">'n'</span>, <span class="str">'н'</span>),
+        <span class="type">Map</span>.entry(<span class="str">'m'</span>, <span class="str">'м'</span>), <span class="type">Map</span>.entry(<span class="str">'t'</span>, <span class="str">'т'</span>),
+        <span class="type">Map</span>.entry(<span class="str">'h'</span>, <span class="str">'н'</span>), <span class="type">Map</span>.entry(<span class="str">'l'</span>, <span class="str">'л'</span>),
+        <span class="type">Map</span>.entry(<span class="str">'ё'</span>, <span class="str">'е'</span>)
+    );
+    <span class="kw">public</span> <span class="fn">SwearFilter</span>(<span class="type">SUSChatPlugin</span> <span class="var">plugin</span>) {
+        <span class="kw">this</span>.<span class="var">plugin</span> = <span class="var">plugin</span>;
+        reload();
+    }
+    <span class="cmt">/**
+     * Перезагружает список слов из конфига и компилирует паттерны
+     */</span>
+    <span class="kw">public void</span> <span class="fn">reload</span>() {
+        <span class="var">enabled</span> = <span class="var">plugin</span>.getConfig().getBoolean(<span class="str">"filter.enabled"</span>, <span class="kw">true</span>);
+        <span class="var">replacementChar</span> = <span class="var">plugin</span>.getConfig().getString(<span class="str">"filter.replacement-char"</span>, <span class="str">"#"</span>);
+        <span class="type">List</span>&lt;<span class="type">String</span>&gt; <span class="var">words</span> = <span class="var">plugin</span>.getConfig().getStringList(<span class="str">"filter.words"</span>);
+        <span class="var">compiledPatterns</span> = <span class="kw">new</span> <span class="type">ArrayList</span>&lt;&gt;();
+        <span class="kw">for</span> (<span class="type">String</span> <span class="var">word</span> : <span class="var">words</span>) {
+            <span class="type">String</span> <span class="var">regex</span> = buildSmartRegex(<span class="var">word</span>);
+            <span class="kw">try</span> {
+                <span class="var">compiledPatterns</span>.add(<span class="type">Pattern</span>.compile(<span class="var">regex</span>,
+                    <span class="type">Pattern</span>.CASE_INSENSITIVE | <span class="type">Pattern</span>.UNICODE_CASE));
+            } <span class="kw">catch</span> (<span class="type">Exception</span> <span class="var">e</span>) {
+                <span class="var">plugin</span>.getLogger().warning(
+                    <span class="str">"Ошибка компиляции паттерна для: "</span> + <span class="var">word</span>);
+            }
+        }
+        <span class="var">plugin</span>.getLogger().info(<span class="str">"Загружено "</span> + <span class="var">compiledPatterns</span>.size()
+            + <span class="str">" паттернов фильтра мата"</span>);
+    }
+    <span class="cmt">/**
+     * Строит умный regex из слова, разрешающий разделители между буквами
+     * Пример: "хуй" -> "х[\\s._\\-*]*у[\\s._\\-*]*й"
+     */</span>
+    <span class="kw">private</span> <span class="type">String</span> <span class="fn">buildSmartRegex</span>(<span class="type">String</span> <span class="var">word</span>) {
+        <span class="type">StringBuilder</span> <span class="var">sb</span> = <span class="kw">new</span> <span class="type">StringBuilder</span>();
+        <span class="type">String</span> <span class="var">separators</span> = <span class="str">"[\\s._\\-*!@#$%^&()=+|/\\\\,;:'\"]*"</span>;
+        <span class="kw">for</span> (<span class="type">int</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> < <span class="var">word</span>.length(); <span class="var">i</span>++) {
+            <span class="kw">char</span> <span class="var">c</span> = <span class="type">Character</span>.toLowerCase(<span class="var">word</span>.charAt(<span class="var">i</span>));
+            <span class="kw">if</span> (<span class="var">c</span> == <span class="str">' '</span>) {
+                <span class="var">sb</span>.append(<span class="var">separators</span>);
+                <span class="kw">continue</span>;
+            }
+            <span class="cmt">// Собираем все возможные символы для этой буквы</span>
+            <span class="type">Set</span>&lt;<span class="type">Character</span>&gt; <span class="var">alternatives</span> = <span class="kw">new</span> <span class="type">LinkedHashSet</span>&lt;&gt;();
+            <span class="var">alternatives</span>.add(<span class="var">c</span>);
+            <span class="cmt">// Обратный поиск по маппингу</span>
+            <span class="kw">for</span> (<span class="type">Map.Entry</span>&lt;<span class="type">Character</span>, <span class="type">Character</span>&gt; <span class="var">entry</span> : <span class="var">CHAR_MAP</span>.entrySet()) {
+                <span class="kw">if</span> (<span class="var">entry</span>.getValue() == <span class="var">c</span>) {
+                    <span class="var">alternatives</span>.add(<span class="var">entry</span>.getKey());
+                }
+            }
+            <span class="cmt">// Прямой поиск</span>
+            <span class="kw">if</span> (<span class="var">CHAR_MAP</span>.containsKey(<span class="var">c</span>)) {
+                <span class="var">alternatives</span>.add(<span class="var">CHAR_MAP</span>.get(<span class="var">c</span>));
+            }
+            <span class="cmt">// ё/е взаимозаменяемы</span>
+            <span class="kw">if</span> (<span class="var">c</span> == <span class="str">'е'</span>) <span class="var">alternatives</span>.add(<span class="str">'ё'</span>);
+            <span class="kw">if</span> (<span class="var">c</span> == <span class="str">'ё'</span>) <span class="var">alternatives</span>.add(<span class="str">'е'</span>);
+            <span class="cmt">// Строим char class</span>
+            <span class="kw">if</span> (<span class="var">alternatives</span>.size() == <span class="num">1</span>) {
+                <span class="var">sb</span>.append(<span class="type">Pattern</span>.quote(<span class="type">String</span>.valueOf(<span class="var">c</span>)));
+            } <span class="kw">else</span> {
+                <span class="var">sb</span>.append(<span class="str">"["</span>);
+                <span class="kw">for</span> (<span class="kw">char</span> <span class="var">alt</span> : <span class="var">alternatives</span>) {
+                    <span class="var">sb</span>.append(<span class="type">Pattern</span>.quote(<span class="type">String</span>.valueOf(<span class="var">alt</span>)));
+                }
+                <span class="var">sb</span>.append(<span class="str">"]"</span>);
+            }
+            <span class="cmt">// Добавляем опциональные разделители между буквами</span>
+            <span class="kw">if</span> (<span class="var">i</span> < <span class="var">word</span>.length() - <span class="num">1</span>) {
+                <span class="var">sb</span>.append(<span class="var">separators</span>);
+            }
+        }
+        <span class="kw">return</span> <span class="var">sb</span>.toString();
+    }
+    <span class="cmt">/**
+     * Фильтрует сообщение — заменяет мат на #
+     */</span>
+    <span class="kw">public</span> <span class="type">FilterResult</span> <span class="fn">filter</span>(<span class="type">String</span> <span class="var">message</span>) {
+        <span class="kw">if</span> (!<span class="var">enabled</span> || <span class="var">compiledPatterns</span>.isEmpty()) {
+            <span class="kw">return new</span> <span class="type">FilterResult</span>(<span class="var">message</span>, <span class="kw">false</span>);
+        }
+        <span class="type">String</span> <span class="var">result</span> = <span class="var">message</span>;
+        <span class="type">boolean</span> <span class="var">wasFiltered</span> = <span class="kw">false</span>;
+        <span class="kw">for</span> (<span class="type">Pattern</span> <span class="var">pattern</span> : <span class="var">compiledPatterns</span>) {
+            <span class="type">Matcher</span> <span class="var">matcher</span> = <span class="var">pattern</span>.matcher(<span class="var">result</span>);
+            <span class="type">StringBuilder</span> <span class="var">sb</span> = <span class="kw">new</span> <span class="type">StringBuilder</span>();
+            <span class="kw">while</span> (<span class="var">matcher</span>.find()) {
+                <span class="var">wasFiltered</span> = <span class="kw">true</span>;
+                <span class="type">String</span> <span class="var">replacement</span> = <span class="var">replacementChar</span>
+                    .repeat(<span class="var">matcher</span>.group().length());
+                <span class="var">matcher</span>.appendReplacement(<span class="var">sb</span>,
+                    <span class="type">Matcher</span>.quoteReplacement(<span class="var">replacement</span>));
+            }
+            <span class="var">matcher</span>.appendTail(<span class="var">sb</span>);
+            <span class="var">result</span> = <span class="var">sb</span>.toString();
+        }
+        <span class="kw">return new</span> <span class="type">FilterResult</span>(<span class="var">result</span>, <span class="var">wasFiltered</span>);
+    }
+    <span class="kw">public boolean</span> <span class="fn">isEnabled</span>() { <span class="kw">return</span> <span class="var">enabled</span>; }
+    <span class="cmt">/**
+     * Результат фильтрации
+     */</span>
+    <span class="kw">public record</span> <span class="type">FilterResult</span>(<span class="type">String</span> <span class="var">filteredMessage</span>, <span class="type">boolean</span> <span class="var">wasFiltered</span>) {}
+}</pre></div>
+                </div>
+            </div>
+            <!-- AntiSpam.java -->
+            <div class="tab-content" id="tab-antispam">
+                <div class="code-block box-glow-blue">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-red-400 text-sm font-mono">📄 filter/AntiSpam.java</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat.filter</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.SUSChatPlugin</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.entity.Player</span>;
+<span class="kw">import</span> <span class="type">java.util.*</span>;
+<span class="cmt">/**
+ * Система анти-спама
+ * Проверяет: кулдаун, капс, повторы
+ */</span>
+<span class="kw">public class</span> <span class="type">AntiSpam</span> {
+    <span class="kw">private final</span> <span class="type">SUSChatPlugin</span> <span class="var">plugin</span>;
+    <span class="cmt">// UUID -> последнее время сообщения</span>
+    <span class="kw">private final</span> <span class="type">Map</span>&lt;<span class="type">UUID</span>, <span class="type">Long</span>&gt; <span class="var">lastMessageTime</span> = <span class="kw">new</span> <span class="type">HashMap</span>&lt;&gt;();
+    <span class="cmt">// UUID -> последнее сообщение</span>
+    <span class="kw">private final</span> <span class="type">Map</span>&lt;<span class="type">UUID</span>, <span class="type">String</span>&gt; <span class="var">lastMessage</span> = <span class="kw">new</span> <span class="type">HashMap</span>&lt;&gt;();
+    <span class="kw">private boolean</span> <span class="var">enabled</span>;
+    <span class="kw">private long</span> <span class="var">cooldownMs</span>;
+    <span class="kw">private double</span> <span class="var">maxCapsPercent</span>;
+    <span class="kw">private int</span> <span class="var">capsMinLength</span>;
+    <span class="kw">private boolean</span> <span class="var">blockRepeats</span>;
+    <span class="kw">public</span> <span class="fn">AntiSpam</span>(<span class="type">SUSChatPlugin</span> <span class="var">plugin</span>) {
+        <span class="kw">this</span>.<span class="var">plugin</span> = <span class="var">plugin</span>;
+        reload();
+    }
+    <span class="kw">public void</span> <span class="fn">reload</span>() {
+        <span class="var">enabled</span> = <span class="var">plugin</span>.getConfig().getBoolean(<span class="str">"antispam.enabled"</span>, <span class="kw">true</span>);
+        <span class="var">cooldownMs</span> = <span class="var">plugin</span>.getConfig().getLong(<span class="str">"antispam.cooldown"</span>, <span class="num">2000</span>);
+        <span class="var">maxCapsPercent</span> = <span class="var">plugin</span>.getConfig().getDouble(<span class="str">"antispam.max-caps-percent"</span>, <span class="num">0.7</span>);
+        <span class="var">capsMinLength</span> = <span class="var">plugin</span>.getConfig().getInt(<span class="str">"antispam.caps-min-length"</span>, <span class="num">5</span>);
+        <span class="var">blockRepeats</span> = <span class="var">plugin</span>.getConfig().getBoolean(<span class="str">"antispam.block-repeats"</span>, <span class="kw">true</span>);
+    }
+    <span class="cmt">/**
+     * Проверяет сообщение на спам
+     * @return SpamResult.OK если всё нормально
+     */</span>
+    <span class="kw">public</span> <span class="type">SpamResult</span> <span class="fn">check</span>(<span class="type">Player</span> <span class="var">player</span>, <span class="type">String</span> <span class="var">message</span>) {
+        <span class="kw">if</span> (!<span class="var">enabled</span>) <span class="kw">return</span> <span class="type">SpamResult</span>.OK;
+        <span class="type">UUID</span> <span class="var">uuid</span> = <span class="var">player</span>.getUniqueId();
+        <span class="cmt">// 1. Проверка кулдауна</span>
+        <span class="kw">if</span> (<span class="var">lastMessageTime</span>.containsKey(<span class="var">uuid</span>)) {
+            <span class="kw">long</span> <span class="var">elapsed</span> = <span class="type">System</span>.currentTimeMillis()
+                - <span class="var">lastMessageTime</span>.get(<span class="var">uuid</span>);
+            <span class="kw">if</span> (<span class="var">elapsed</span> < <span class="var">cooldownMs</span>) {
+                <span class="kw">return</span> <span class="type">SpamResult</span>.COOLDOWN;
+            }
+        }
+        <span class="cmt">// 2. Проверка капса</span>
+        <span class="kw">if</span> (<span class="var">message</span>.length() >= <span class="var">capsMinLength</span>) {
+            <span class="kw">long</span> <span class="var">upperCount</span> = <span class="var">message</span>.chars()
+                .filter(<span class="type">Character</span>::isUpperCase).count();
+            <span class="kw">long</span> <span class="var">letterCount</span> = <span class="var">message</span>.chars()
+                .filter(<span class="type">Character</span>::isLetter).count();
+            <span class="kw">if</span> (<span class="var">letterCount</span> > <span class="num">0</span>) {
+                <span class="kw">double</span> <span class="var">capsRatio</span> = (<span class="kw">double</span>) <span class="var">upperCount</span> / <span class="var">letterCount</span>;
+                <span class="kw">if</span> (<span class="var">capsRatio</span> > <span class="var">maxCapsPercent</span>) {
+                    <span class="kw">return</span> <span class="type">SpamResult</span>.CAPS;
+                }
+            }
+        }
+        <span class="cmt">// 3. Проверка повторов</span>
+        <span class="kw">if</span> (<span class="var">blockRepeats</span> && <span class="var">lastMessage</span>.containsKey(<span class="var">uuid</span>)) {
+            <span class="kw">if</span> (<span class="var">lastMessage</span>.get(<span class="var">uuid</span>)
+                    .equalsIgnoreCase(<span class="var">message</span>.trim())) {
+                <span class="kw">return</span> <span class="type">SpamResult</span>.REPEAT;
+            }
+        }
+        <span class="cmt">// Всё ок — обновляем данные</span>
+        <span class="var">lastMessageTime</span>.put(<span class="var">uuid</span>, <span class="type">System</span>.currentTimeMillis());
+        <span class="var">lastMessage</span>.put(<span class="var">uuid</span>, <span class="var">message</span>.trim());
+        <span class="kw">return</span> <span class="type">SpamResult</span>.OK;
+    }
+    <span class="kw">public enum</span> <span class="type">SpamResult</span> {
+        OK, COOLDOWN, CAPS, REPEAT
+    }
+}</pre></div>
+                </div>
+            </div>
+            <!-- ColorUtil.java -->
+            <div class="tab-content" id="tab-colorutil">
+                <div class="code-block box-glow-blue">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-300 text-sm font-mono">📄 util/ColorUtil.java</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat.util</span>;
+<span class="kw">import</span> <span class="type">net.kyori.adventure.text.Component</span>;
+<span class="kw">import</span> <span class="type">net.kyori.adventure.text.minimessage.MiniMessage</span>;
+<span class="kw">import</span> <span class="type">net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer</span>;
+<span class="cmt">/**
+ * Утилиты для работы с цветами и MiniMessage
+ */</span>
+<span class="kw">public final class</span> <span class="type">ColorUtil</span> {
+    <span class="kw">private static final</span> <span class="type">MiniMessage</span> <span class="var">MINI</span> = <span class="type">MiniMessage</span>.miniMessage();
+    <span class="kw">private static final</span> <span class="type">LegacyComponentSerializer</span> <span class="var">LEGACY</span> =
+        <span class="type">LegacyComponentSerializer</span>.legacyAmpersand();
+    <span class="kw">private</span> <span class="fn">ColorUtil</span>() {} <span class="cmt">// Утилитный класс</span>
+    <span class="cmt">/**
+     * Парсит MiniMessage строку в Component
+     */</span>
+    <span class="kw">public static</span> <span class="type">Component</span> <span class="fn">parse</span>(<span class="type">String</span> <span class="var">miniMessageString</span>) {
+        <span class="kw">return</span> <span class="var">MINI</span>.deserialize(<span class="var">miniMessageString</span>);
+    }
+    <span class="cmt">/**
+     * Конвертирует legacy цвета (&a, &b) в MiniMessage формат
+     */</span>
+    <span class="kw">public static</span> <span class="type">String</span> <span class="fn">legacyToMini</span>(<span class="type">String</span> <span class="var">legacyString</span>) {
+        <span class="type">Component</span> <span class="var">component</span> = <span class="var">LEGACY</span>.deserialize(<span class="var">legacyString</span>);
+        <span class="kw">return</span> <span class="var">MINI</span>.serialize(<span class="var">component</span>);
+    }
+    <span class="cmt">/**
+     * Убирает все цветовые коды из строки
+     */</span>
+    <span class="kw">public static</span> <span class="type">String</span> <span class="fn">stripColors</span>(<span class="type">String</span> <span class="var">input</span>) {
+        <span class="kw">return</span> <span class="var">input</span>
+            .replaceAll(<span class="str">"&lt;[^&gt;]+&gt;"</span>, <span class="str">""</span>)       <span class="cmt">// MiniMessage tags</span>
+            .replaceAll(<span class="str">"&[0-9a-fk-or]"</span>, <span class="str">""</span>)  <span class="cmt">// Legacy codes</span>
+            .replaceAll(<span class="str">"§[0-9a-fk-or]"</span>, <span class="str">""</span>); <span class="cmt">// Section codes</span>
+    }
+}</pre></div>
+                </div>
+            </div>
+            <!-- SoundUtil.java -->
+            <div class="tab-content" id="tab-soundutil">
+                <div class="code-block box-glow-green">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-300 text-sm font-mono">📄 util/SoundUtil.java</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat.util</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.Sound</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.entity.Player</span>;
+<span class="cmt">/**
+ * Утилиты для воспроизведения звуков
+ */</span>
+<span class="kw">public final class</span> <span class="type">SoundUtil</span> {
+    <span class="kw">private</span> <span class="fn">SoundUtil</span>() {}
+    <span class="cmt">/**
+     * Воспроизводит звук игроку по имени
+     */</span>
+    <span class="kw">public static void</span> <span class="fn">playSound</span>(<span class="type">Player</span> <span class="var">player</span>, <span class="type">String</span> <span class="var">soundName</span>,
+                                 <span class="kw">float</span> <span class="var">volume</span>, <span class="kw">float</span> <span class="var">pitch</span>) {
+        <span class="kw">try</span> {
+            <span class="type">Sound</span> <span class="var">sound</span> = <span class="type">Sound</span>.valueOf(<span class="var">soundName</span>.toUpperCase());
+            <span class="var">player</span>.playSound(<span class="var">player</span>.getLocation(),
+                <span class="var">sound</span>, <span class="var">volume</span>, <span class="var">pitch</span>);
+        } <span class="kw">catch</span> (<span class="type">IllegalArgumentException</span> <span class="var">e</span>) {
+            <span class="cmt">// Неизвестный звук — просто игнорируем</span>
+        }
+    }
+}</pre></div>
+                </div>
+            </div>
+            <!-- ConfigManager.java -->
+            <div class="tab-content" id="tab-configmgr">
+                <div class="code-block box-glow-blue">
+                    <div class="code-header">
+                        <div class="flex items-center gap-2">
+                            <span class="text-blue-300 text-sm font-mono">📄 config/ConfigManager.java</span>
+                        </div>
+                        <button class="copy-btn px-3 py-1 text-xs text-gray-400 rounded-md bg-white/5" onclick="copyCode(this)">📋 Copy</button>
+                    </div>
+                    <div class="code-content font-mono"><pre><span class="kw">package</span> <span class="type">com.susworld.chat.config</span>;
+<span class="kw">import</span> <span class="type">com.susworld.chat.SUSChatPlugin</span>;
+<span class="kw">import</span> <span class="type">org.bukkit.configuration.file.FileConfiguration</span>;
+<span class="cmt">/**
+ * Менеджер конфигурации
+ * Предоставляет удобные методы доступа к настройкам
+ */</span>
+<span class="kw">public class</span> <span class="type">ConfigManager</span> {
+    <span class="kw">private final</span> <span class="type">SUSChatPlugin</span> <span class="var">plugin</span>;
+    <span class="kw">private</span> <span class="type">FileConfiguration</span> <span class="var">config</span>;
+    <span class="kw">public</span> <span class="fn">ConfigManager</span>(<span class="type">SUSChatPlugin</span> <span class="var">plugin</span>) {
+        <span class="kw">this</span>.<span class="var">plugin</span> = <span class="var">plugin</span>;
+        <span class="kw">this</span>.<span class="var">config</span> = <span class="var">plugin</span>.getConfig();
+    }
+    <span class="kw">public void</span> <span class="fn">reload</span>() {
+        <span class="var">plugin</span>.reloadConfig();
+        <span class="kw">this</span>.<span class="var">config</span> = <span class="var">plugin</span>.getConfig();
+    }
+    <span class="cmt">// ── Шорткаты для частых настроек ────────────────</span>
+    <span class="kw">public</span> <span class="type">String</span> <span class="fn">getGlobalPrefix</span>() {
+        <span class="kw">return</span> <span class="var">config</span>.getString(<span class="str">"chat.global-prefix"</span>, <span class="str">"!"</span>);
+    }
+    <span class="kw">public int</span> <span class="fn">getLocalRadius</span>() {
+        <span class="kw">return</span> <span class="var">config</span>.getInt(<span class="str">"chat.local-radius"</span>, <span class="num">100</span>);
+    }
+    <span class="kw">public</span> <span class="type">String</span> <span class="fn">getMessagePrefix</span>() {
+        <span class="kw">return</span> <span class="var">config</span>.getString(<span class="str">"messages.prefix"</span>, <span class="str">""</span>);
+    }
+    <span class="kw">public boolean</span> <span class="fn">isFilterEnabled</span>() {
+        <span class="kw">return</span> <span class="var">config</span>.getBoolean(<span class="str">"filter.enabled"</span>, <span class="kw">true</span>);
+    }
+    <span class="kw">public boolean</span> <span class="fn">isAntiSpamEnabled</span>() {
+        <span class="kw">return</span> <span class="var">config</span>.getBoolean(<span class="str">"antispam.enabled"</span>, <span class="kw">true</span>);
+    }
+    <span class="kw">public int</span> <span class="fn">getAdCooldown</span>() {
+        <span class="kw">return</span> <span class="var">config</span>.getInt(<span class="str">"ad.cooldown"</span>, <span class="num">300</span>);
+    }
+    <span class="kw">public</span> <span class="type">FileConfiguration</span> <span class="fn">getConfig</span>() { <span class="kw">return</span> <span class="var">config</span>; }
+}</pre></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="section-divider"></div>
+    <!-- Chat Preview -->
+    <section id="preview" class="py-16 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">
+                <span class="text-green-400">🎮</span> Как выглядит в игре
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Global Chat -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Глобальный чат
+                    </h3>
+                    <div class="mc-chat">
+                        <div><span class="mc-dark-gray">[</span><span class="mc-gold">G</span><span class="mc-dark-gray">]</span> <span class="mc-white">Steve</span> <span class="mc-dark-gray">»</span> <span class="mc-gray">Привет всем на сервере!</span></div>
+                        <div><span class="mc-dark-gray">[</span><span class="mc-gold">G</span><span class="mc-dark-gray">]</span> <span class="mc-white">Alex</span> <span class="mc-dark-gray">»</span> <span class="mc-gray">Кто хочет играть вместе?</span></div>
+                        <div><span class="mc-dark-gray">[</span><span class="mc-gold">G</span><span class="mc-dark-gray">]</span> <span class="mc-white">Notch</span> <span class="mc-dark-gray">»</span> <span class="mc-gray">Я тут! <span class="mc-aqua">@Alex</span> идём!</span></div>
+                    </div>
+                </div>
+                <!-- Local Chat -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-cyan-400 rounded-full"></span> Локальный чат
+                    </h3>
+                    <div class="mc-chat">
+                        <div><span class="mc-dark-gray">[</span><span class="mc-aqua">L</span><span class="mc-dark-gray">]</span> <span class="mc-white">Steve</span> <span class="mc-dark-gray">»</span> <span class="mc-gray">Тут кто-нибудь есть рядом?</span></div>
+                        <div><span class="mc-dark-gray">[</span><span class="mc-aqua">L</span><span class="mc-dark-gray">]</span> <span class="mc-white">Alex</span> <span class="mc-dark-gray">»</span> <span class="mc-gray">Да, я тут! Помоги добыть алмазы</span></div>
+                        <div><span class="mc-gray">[<span class="mc-red">!</span>] Рядом никого нет... Используй <span class="mc-gold">!&lt;сообщение&gt;</span> для глобального чата.</span></div>
+                    </div>
+                </div>
+                <!-- Ad -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-yellow-500 rounded-full"></span> Объявление /ad
+                    </h3>
+                    <div class="mc-chat">
+                        <div class="mc-gray">╔══════════════════════════════════════════╗</div>
+                        <div><span class="mc-gray">║</span> <span class="mc-gold mc-bold">📢 ОБЪЯВЛЕНИЕ</span> <span class="mc-dark-gray">от</span> <span class="mc-white">Steve</span></div>
+                        <div><span class="mc-gray">║</span> <span class="mc-white">Продаю алмазный меч за 10 изумрудов!</span></div>
+                        <div class="mc-gray">╚══════════════════════════════════════════╝</div>
+                    </div>
+                </div>
+                <!-- Filter -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-red-400 rounded-full"></span> Фильтр мата
+                    </h3>
+                    <div class="mc-chat">
+                        <div><span class="mc-dark-gray">[</span><span class="mc-gold">G</span><span class="mc-dark-gray">]</span> <span class="mc-white">Griefer</span> <span class="mc-dark-gray">»</span> <span class="mc-gray">Ты ##### и ####!</span></div>
+                        <div><span class="mc-red">⚠</span> <span class="mc-gray">Сообщение содержало нецензурную лексику и было отфильтровано.</span></div>
+                        <div>&nbsp;</div>
+                        <div><span class="mc-red">⏳</span> <span class="mc-gray">Подожди немного перед следующим сообщением!</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="section-divider"></div>
+    <!-- Commands -->
+    <section id="commands" class="py-16 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">
+                <span class="text-purple-400">📋</span> Команды и права
+            </h2>
+            <div class="space-y-4">
+                <div class="bg-[#111827] border border-[#1f2937] rounded-xl overflow-hidden">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-[#1f2937] text-left">
+                                <th class="px-6 py-4 text-green-400 font-semibold">Команда</th>
+                                <th class="px-6 py-4 text-purple-400 font-semibold">Право</th>
+                                <th class="px-6 py-4 text-gray-400 font-semibold">Описание</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-300">
+                            <tr class="border-b border-[#1f2937]/50 hover:bg-white/2 transition">
+                                <td class="px-6 py-3 font-mono text-green-400">!сообщение</td>
+                                <td class="px-6 py-3 font-mono text-purple-300">suschat.chat.global</td>
+                                <td class="px-6 py-3">Глобальный чат</td>
+                            </tr>
+                            <tr class="border-b border-[#1f2937]/50 hover:bg-white/2 transition">
+                                <td class="px-6 py-3 font-mono text-green-400">обычное сообщение</td>
+                                <td class="px-6 py-3 font-mono text-purple-300">—</td>
+                                <td class="px-6 py-3">Локальный чат (100 блоков)</td>
+                            </tr>
+                            <tr class="border-b border-[#1f2937]/50 hover:bg-white/2 transition">
+                                <td class="px-6 py-3 font-mono text-green-400">/ad сообщение</td>
+                                <td class="px-6 py-3 font-mono text-purple-300">suschat.ad</td>
+                                <td class="px-6 py-3">Объявление на весь сервер</td>
+                            </tr>
+                            <tr class="border-b border-[#1f2937]/50 hover:bg-white/2 transition">
+                                <td class="px-6 py-3 font-mono text-green-400">/suschat reload</td>
+                                <td class="px-6 py-3 font-mono text-purple-300">suschat.admin</td>
+                                <td class="px-6 py-3">Перезагрузка конфига</td>
+                            </tr>
+                            <tr class="border-b border-[#1f2937]/50 hover:bg-white/2 transition">
+                                <td class="px-6 py-3 font-mono text-green-400">/suschat help</td>
+                                <td class="px-6 py-3 font-mono text-purple-300">suschat.admin</td>
+                                <td class="px-6 py-3">Помощь по плагину</td>
+                            </tr>
+                            <tr class="border-b border-[#1f2937]/50 hover:bg-white/2 transition">
+                                <td class="px-6 py-3 font-mono text-green-400">@ник</td>
+                                <td class="px-6 py-3 font-mono text-purple-300">—</td>
+                                <td class="px-6 py-3">Упоминание игрока со звуком</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-[#111827] border border-[#1f2937] rounded-xl p-6 mt-8">
+                    <h3 class="text-lg font-bold text-white mb-4">🛡️ Дополнительные права</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <div class="flex items-start gap-3 p-3 bg-white/2 rounded-lg">
+                            <span class="text-purple-400 font-mono text-xs mt-0.5">suschat.bypass.filter</span>
+                            <span class="text-gray-400">Обход фильтра мата</span>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-white/2 rounded-lg">
+                            <span class="text-purple-400 font-mono text-xs mt-0.5">suschat.bypass.spam</span>
+                            <span class="text-gray-400">Обход анти-спама</span>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-white/2 rounded-lg">
+                            <span class="text-purple-400 font-mono text-xs mt-0.5">suschat.ad.bypass-cooldown</span>
+                            <span class="text-gray-400">Обход кулдауна /ad</span>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-white/2 rounded-lg">
+                            <span class="text-purple-400 font-mono text-xs mt-0.5">suschat.chat.color</span>
+                            <span class="text-gray-400">Использование цветов в чате</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="section-divider"></div>
+    <!-- Build Instructions -->
+    <section id="config" class="py-16 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">
+                <span class="text-blue-400">🔧</span> Сборка и установка
+            </h2>
+            <div class="space-y-6">
+                <div class="animated-border">
+                    <div class="bg-[#111827] rounded-2xl p-8">
+                        <h3 class="text-xl font-bold text-white mb-6">Шаги сборки</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center font-bold text-sm shrink-0">1</div>
+                                <div>
+                                    <p class="text-white font-medium">Установи Java 21 и Maven</p>
+                                    <p class="text-gray-400 text-sm mt-1">JDK 21+ обязателен для Paper 1.21.1</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center font-bold text-sm shrink-0">2</div>
+                                <div>
+                                    <p class="text-white font-medium">Создай структуру проекта</p>
+                                    <p class="text-gray-400 text-sm mt-1">Скопируй все файлы в соответствующие папки (см. структуру выше)</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center font-bold text-sm shrink-0">3</div>
+                                <div>
+                                    <p class="text-white font-medium">Собери проект</p>
+                                    <code class="block mt-2 bg-black/30 text-green-400 px-4 py-2 rounded-lg font-mono text-sm">mvn clean package</code>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center font-bold text-sm shrink-0">4</div>
+                                <div>
+                                    <p class="text-white font-medium">Установи на сервер</p>
+                                    <p class="text-gray-400 text-sm mt-1">Скопируй <code class="text-green-400">target/SUSChat-2.0.0.jar</code> в папку <code class="text-green-400">plugins/</code> сервера</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <div class="w-8 h-8 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center font-bold text-sm shrink-0">5</div>
+                                <div>
+                                    <p class="text-white font-medium">Перезапусти сервер</p>
+                                    <p class="text-gray-400 text-sm mt-1">Плагин автоматически создаст config.yml при первом запуске</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-6">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">⚠️</span>
+                        <div>
+                            <h4 class="text-yellow-400 font-bold">Важно</h4>
+                            <p class="text-gray-400 text-sm mt-1">
+                                Плагин использует <strong class="text-white">Paper API</strong> и <strong class="text-white">Adventure MiniMessage</strong>.
+                                Убедись, что сервер работает на <strong class="text-white">Paper 1.21.1</strong> (не Spigot/Bukkit).
+                                Adventure API включён в Paper по умолчанию.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Footer -->
+    <footer class="py-12 px-4 border-t border-white/5">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold text-xs">SC</div>
+                <span class="font-bold text-lg">SUS World Chat Plugin</span>
+            </div>
+            <p class="text-gray-500 text-sm">
+                Сделано с 💚 для SUS World • Paper 1.21.1 • MiniMessage • Adventure API
+            </p>
+            <p class="text-gray-600 text-xs mt-2">
+                v2.0.0 • Java 21 • MIT License
+            </p>
+        </div>
+    </footer>
+    <script>
+        // ── Tab System ──────────────────────────────────────
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Deactivate all
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                // Activate clicked
+                btn.classList.add('active');
+                const tabId = 'tab-' + btn.dataset.tab;
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        // ── Copy Button ─────────────────────────────────────
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const pre = codeBlock.querySelector('.code-content pre');
+            const text = pre.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                button.classList.add('copied');
+                button.innerHTML = '✅ Copied!';
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = '📋 Copy';
+                }, 2000);
+            });
+        }
+        // ── Floating Particles ──────────────────────────────
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const colors = ['#00ff88', '#a855f7', '#3b82f6', '#f59e0b'];
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 4 + 2;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.cssText = `
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: ${color};
+                    left: ${Math.random() * 100}%;
+                    animation-duration: ${Math.random() * 20 + 15}s;
+                    animation-delay: ${Math.random() * 10}s;
+                `;
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+        // ── Active Nav Link ─────────────────────────────────
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
